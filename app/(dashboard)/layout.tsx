@@ -2,7 +2,13 @@ import { ReactNode } from "react";
 import { currentUser } from "@clerk/nextjs/server";
 import prisma from "@/lib/db";
 import { AppSidebar, SidebarUser } from "@/components/app-sidebar";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const clerkUser = await currentUser();
@@ -37,8 +43,24 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider>
       <AppSidebar user={sidebarUser} />
-        <SidebarTrigger className="m-2" />
-        {children}
+      <SidebarInset>
+        {" "}
+        <header className="flex h-16 shrink-0 items-center gap-2 px-4 border-b">
+          <SidebarTrigger />
+          <Separator
+              orientation="vertical"
+              className="mr-2 data-[orientation=vertical]:h-4"
+            /> 
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbPage>Dashboard</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </header>
+        <main className="p-6">{children}</main>
+      </SidebarInset>
     </SidebarProvider>
   );
 }

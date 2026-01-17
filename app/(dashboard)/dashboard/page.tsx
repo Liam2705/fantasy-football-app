@@ -1,44 +1,118 @@
+import { GameweekPointsCard } from "@/components/dashboard/gameweek-points-card";
+import { OverallRankCard } from "@/components/dashboard/overall-rank-card";
+import { TeamLineupCard } from "@/components/dashboard/team-lineup-card";
+import { TransfersCard } from "@/components/dashboard/transfers-card";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbPage,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/breadcrumb";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { Badge } from "lucide-react";
 
-export default async function Page() { 
-
+export default async function Page() {
   return (
     <SidebarProvider>
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2">
-          <div className="flex items-center gap-2 px-4">
-            <Separator
-              orientation="vertical"
-              className="mr-2 data-[orientation=vertical]:h-4"
-            />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Dashboard</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
-        </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div className="bg-muted/50 aspect-video rounded-xl" />
-            <div className="bg-muted/50 aspect-video rounded-xl" />
-            <div className="bg-muted/50 aspect-video rounded-xl" />
+            <GameweekPointsCard
+              gameweek={22}
+              points={34}
+              change={12}
+              progress={76}
+            />
+            <OverallRankCard rank={0} change={0} />
+            <TransfersCard transfers={0} freeTransfers={0} />
           </div>
-          <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
+          <TeamLineupCard
+            captain="Erling Haaland"
+            viceCaptain="Mohamed Salah"
+            starters={[
+              { name: "Ederson", team: "Man City", position: "GK", points: 8 },
+              {
+                name: "Ruben Dias",
+                team: "Man City",
+                position: "DEF",
+                points: 6,
+              },
+              {
+                name: "Virgil van Dijk",
+                team: "Liverpool",
+                position: "DEF",
+                points: 7,
+              },
+              {
+                name: "Virgil van Dijk",
+                team: "Liverpool",
+                position: "DEF",
+                points: 7,
+              },
+              {
+                name: "Virgil van Dijk",
+                team: "Liverpool",
+                position: "DEF",
+                points: 7,
+              },
+              {
+                name: "Virgil van Dijk",
+                team: "Liverpool",
+                position: "DEF",
+                points: 7,
+              },
+              {
+                name: "Virgil van Dijk",
+                team: "Liverpool",
+                position: "DEF",
+                points: 7,
+              },
+              {
+                name: "Virgil van Dijk",
+                team: "Liverpool",
+                position: "DEF",
+                points: 7,
+              },
+              {
+                name: "Virgil van Dijk",
+                team: "Liverpool",
+                position: "DEF",
+                points: 7,
+              },
+              {
+                name: "Virgil van Dijk",
+                team: "Liverpool",
+                position: "MID",
+                points: 7,
+              },
+              {
+                name: "Virgil van Dijk",
+                team: "Liverpool",
+                position: "FWD",
+                points: 7,
+              },
+              // ... add 8 more starters
+            ]}
+            bench={[
+              {
+                name: "Nathan Ake",
+                team: "Man City",
+                position: "DEF",
+                points: 0,
+              },
+              {
+                name: "Cole Palmer",
+                team: "Chelsea",
+                position: "MID",
+                points: 0,
+              },
+              // ... add 2 more bench players
+            ]}
+          />
         </div>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }
