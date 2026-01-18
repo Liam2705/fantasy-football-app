@@ -69,14 +69,6 @@ export default async function LeagueDraftPage({
     orderBy: { pickOrder: 'asc' }
   })
 
-  console.log('=== DRAFT PAGE DATA ===')
-  console.log('User ID:', user.id)
-  console.log('League ID:', leagueId)
-  console.log('Draft Picks Count:', draftPicks.length)
-  console.log('Draft Picks:', draftPicks.map(p => p.player.fullName))
-  console.log('Available Players Count:', players.length)
-  console.log('=======================')
-
   return (
     <div className="flex-1 p-4 sm:p-6">
       <div className="mb-4 sm:mb-6">
@@ -88,7 +80,6 @@ export default async function LeagueDraftPage({
           League: <span className="font-semibold">{membership.league.name}</span> ({membership.league.code})
         </p>
         <p className="text-xs text-red-500 mt-1">
-          Debug: {draftPicks.length} picks loaded
         </p>
       </div>
 
