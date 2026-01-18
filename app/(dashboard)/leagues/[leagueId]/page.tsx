@@ -69,45 +69,53 @@ export default async function LeagueDetailPage({
     redirect('/leagues')
   }
 
+  // If user already completed draft, redirect to my-team
+  if (user.draftComplete) {
+    redirect('/my-team')
+  }
+
   // Count how many members have completed draft
   const membersWithDraft = league.members.filter(m => m.user.draftComplete).length
   const totalMembers = league.members.length
 
   return (
     <div className="flex-1 p-4 sm:p-6">
-      {/* Header Section */}
-      <div className="mb-6">
-        <div className="flex items-start justify-between mb-2">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
-              {league.name}
-              {isOwner && <Crown className="h-6 w-6 text-yellow-500" />}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Owned by {league.owner.teamName}
-            </p>
-          </div>
-          
-          {isOwner && (
-            <Button variant="outline" size="sm">
-              <Pencil className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
-          )}
+    {/* Header Section */}
+    <div className="mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+        <div className="min-w-0 flex-1">
+          {/* League Name  */}
+          <h1 className="text-2xl sm:text-3xl font-bold flex flex-wrap items-center gap-2 mb-1">
+            <span className="break-words">{league.name}</span>
+            {isOwner && <Crown className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500 flex-shrink-0" />}
+          </h1>
+          {/* Owner Info */}
+          <p className="text-sm text-muted-foreground">
+            Owned by {league.owner.teamName || 'Unknown'}
+          </p>
         </div>
+        
+        {/* Edit Button */}
+        {isOwner && (
+          <Button variant="outline" size="sm" className="self-start sm:self-auto">
+            <Pencil className="h-4 w-4 mr-2" />
+            Edit
+          </Button>
+        )}
+      </div>
 
-        {/* League Stats */}
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <Users className="h-4 w-4" />
-            <span>{totalMembers} members</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Trophy className="h-4 w-4" />
-            <span>Gameweek {league.currentGameweek}</span>
-          </div>
+      {/* League Stats */}
+      <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-muted-foreground">
+        <div className="flex items-center gap-1.5">
+          <Users className="h-4 w-4 flex-shrink-0" />
+          <span>{totalMembers} {totalMembers === 1 ? 'member' : 'members'}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Trophy className="h-4 w-4 flex-shrink-0" />
+          <span>Gameweek {league.currentGameweek}</span>
         </div>
       </div>
+    </div>
 
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-3">

@@ -45,7 +45,7 @@ model League {
   name       String
   code       String  @unique
   isPrivate  Boolean @default(true)
-  isDrafting Boolean @default(true)
+  isDrafting Boolean @default(false)
   draftOrder Json?
 
   currentGameweek Int @default(1)
@@ -145,6 +145,7 @@ model DraftPick {
   createdAt   DateTime @default(now())
 
   @@unique([playerId, leagueId])     // One player per person in each league
-  @@unique([userId, pickOrder])    // Unique draft order per user
+  @@unique([userId, pickOrder, leagueId])    // Unique draft order per user
+  @@unique([userId, playerId, leagueId]) // User can have the same player in different leagues
   @@map("draft_picks")
 }

@@ -4,19 +4,22 @@ import { useOptimistic, useTransition } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { removePlayerFromSquad } from "@/app/actions/draft"
-import { X } from "lucide-react"
+import { removePlayerFromSquad, confirmDraft } from "@/app/actions/draft"
+import { Loader2, X } from "lucide-react"
 import { toast } from "sonner"
 import { DraftPick, Player } from "@/app/generated/prisma/client"
+import { useRouter } from "next/navigation"
 
 type SelectedSquadProps = {
   picks: (DraftPick & { player: Player })[]
   userId: string
+  leagueId: string
 }
 
-export function SelectedSquad({ picks, userId }: SelectedSquadProps) {
-  const [isPending, startTransition] = useTransition()
+export function SelectedSquad({ picks, userId, leagueId }: SelectedSquadProps) {
   
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition()
   const [optimisticPicks, removeOptimisticPick] = useOptimistic(
     picks,
     (state, pickIdToRemove: string) => state.filter(p => p.id !== pickIdToRemove)
@@ -50,6 +53,23 @@ export function SelectedSquad({ picks, userId }: SelectedSquadProps) {
       }
     })
   }
+
+  const handleConfirmDraft = async () => {
+    startTransition(async () => {
+      const result = await confirmDraft(leagueId)
+      
+      if (result.success) {
+        toast.success("Draft complete! Redirecting to league...")
+        setTimeout(() => {
+          router.push(`/leagues/${leagueId}`)
+        }, 1500)
+      } else {
+        toast.error(result.error || "Failed to confirm draft")
+      }
+    })
+  }
+
+
 
   return (
     <Card className="lg:sticky lg:top-6">
@@ -114,8 +134,20 @@ export function SelectedSquad({ picks, userId }: SelectedSquadProps) {
         </div>
 
         {isComplete && (
-          <Button className="w-full mt-4" size="lg">
-            Confirm Squad
+          <Button 
+            className="w-full mt-4" 
+            size="lg"
+            onClick={handleConfirmDraft}
+            disabled={isPending}
+          >
+            {isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Confirming...
+              </>
+            ) : (
+              'Confirm Squad'
+            )}
           </Button>
         )}
       </CardContent>

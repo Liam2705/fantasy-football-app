@@ -17,6 +17,22 @@ export async function addPlayerToSquad(formData: FormData) {
         }
 
         const playerId = formData.get("playerId") as string
+        const leagueId = formData.get("leagueId") as string
+
+        //Check if the player already drafted in this league
+        const existingPick = await prisma.draftPick.findFirst({
+            where: {
+                playerId,
+                leagueId
+            }
+        })
+
+        if (existingPick) {
+            return {
+                success: false,
+                error: "Player already drafted in this league"
+            }
+        }
 
         // Check squad limit
         const currentPicks = await prisma.draftPick.count({
@@ -34,11 +50,14 @@ export async function addPlayerToSquad(formData: FormData) {
 
         if (!player) {
             return { success: false, error: "Player not found" }
-        }
+        }      
 
         // Check position limits
         const positionPicks: DraftPickWithPlayer[] = await prisma.draftPick.findMany({
-            where: { userId: user.id },
+            where: {
+                userId: user.id,
+                leagueId
+            },
             include: { player: true }
         })
 
@@ -61,7 +80,10 @@ export async function addPlayerToSquad(formData: FormData) {
 
         // Get the next available pickOrder
         const maxPickOrder = await prisma.draftPick.findFirst({
-            where: { userId: user.id },
+            where: {
+                userId: user.id,
+                leagueId
+            },
             orderBy: { pickOrder: 'desc' },
             select: { pickOrder: true }
         })
@@ -74,6 +96,7 @@ export async function addPlayerToSquad(formData: FormData) {
                 data: {
                     userId: user.id,
                     playerId,
+                    leagueId,
                     pickOrder: nextPickOrder,
                     lineupSlot: nextPickOrder,
                 }
@@ -86,7 +109,7 @@ export async function addPlayerToSquad(formData: FormData) {
             throw error // Re-throw if it's a different error
         }
 
-        revalidatePath("/draft")
+        revalidatePath(`/leagues/${leagueId}/draft`)
         return { success: true }
     } catch (error) {
         console.error('Add player error:', error)
@@ -102,15 +125,19 @@ export async function removePlayerFromSquad(formData: FormData) {
         }
 
         const pickId = formData.get("pickId") as string
+        const leagueId = formData.get("leagueId") as string
 
         // Delete the pick
         await prisma.draftPick.delete({
-            where: { id: pickId, userId: user.id }
+            where: { id: pickId, userId: user.id, }
         })
 
         // Reorder remaining picks to fill gaps
         const remainingPicks = await prisma.draftPick.findMany({
-            where: { userId: user.id },
+            where: {
+                userId: user.id,
+                leagueId
+            },
             orderBy: { pickOrder: 'asc' }
         })
 
@@ -126,10 +153,96 @@ export async function removePlayerFromSquad(formData: FormData) {
             )
         )
 
-        revalidatePath("/draft")
+        revalidatePath(`/leagues/${leagueId}/draft`)
         return { success: true }
     } catch (error) {
         console.error('Remove player error:', error)
         return { success: false, error: "Failed to remove player" }
+    }
+}
+
+export async function confirmDraft(leagueId: string) {
+    try {
+        //Verify User
+        const user = await getOrCreateUser();
+        if (!user) {
+            return { success: false, error: 'Unauthorised' }
+        }
+
+        //Verify user is member of this league
+        const membership = await prisma.leagueMember.findFirst({
+            where: {
+                leagueId,
+                userId: user.id
+            }
+        })
+
+        if (!membership) {
+            return { success: false, error: "You are not a member of this league" }
+        }
+
+        // Verify user has picked 15 players
+        const pickCount = await prisma.draftPick.count({
+            where: {
+                userId: user.id,
+                leagueId
+            }
+        })
+
+        if (pickCount !== 15) {
+            return {
+                success: false,
+                error: `You need exactly 15 players (currently have ${pickCount})`
+            }
+
+        }
+
+        //Verify position requirements
+        const picks = await prisma.draftPick.findMany({
+            where: {
+                userId: user.id,
+                leagueId
+            },
+            include: { player: true }
+        })
+
+        const positionCounts = {
+            GK: picks.filter(p => p.player.position === 'GK').length,
+            DEF: picks.filter(p => p.player.position === 'DEF').length,
+            MID: picks.filter(p => p.player.position === 'MID').length,
+            FWD: picks.filter(p => p.player.position === 'FWD').length,
+        }
+
+        if (positionCounts.GK !== 2) {
+            return { success: false, error: "You need exactly 2 Goalkeepers" }
+        }
+        if (positionCounts.DEF !== 5) {
+            return { success: false, error: "You need exactly 5 Defenders" }
+        }
+        if (positionCounts.MID !== 5) {
+            return { success: false, error: "You need exactly 5 Midfielders" }
+        }
+        if (positionCounts.FWD !== 3) {
+            return { success: false, error: "You need exactly 3 Forwards" }
+        }
+
+        // Mark draft as complete
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { draftComplete: true }
+        })
+
+        revalidatePath(`/leagues/${leagueId}`)
+        revalidatePath(`/leagues/${leagueId}/draft`)
+
+        return { success: true }
+
+    } catch (error) {
+        console.error('Confirm draft error: ', error);
+        return {
+            success: false,
+            error: 'Failed to confirm draft, please try again.'
+        }
+
     }
 }

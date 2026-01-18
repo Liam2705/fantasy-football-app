@@ -14,9 +14,10 @@ import { DraftPick, Player } from "@/app/generated/prisma/client"
 type PlayerListProps = {
   players: Player[]
   currentPicks: (DraftPick & { player: Player })[]
+  leagueId: string
 }
 
-export function PlayerList({ players, currentPicks }: PlayerListProps) {
+export function PlayerList({ players, currentPicks, leagueId }: PlayerListProps) {
   const [search, setSearch] = useState("")
   const [position, setPosition] = useState("ALL")
   const [isPending, startTransition] = useTransition()
@@ -65,7 +66,7 @@ export function PlayerList({ players, currentPicks }: PlayerListProps) {
       userId: '', // set by server
       createdAt: new Date(), 
       playerId: player.id,
-      leagueId: null,
+      leagueId: leagueId,
       pickOrder: optimisticPicks.length + 1,
       lineupSlot: optimisticPicks.length + 1,
       isCaptain: false,
@@ -80,6 +81,7 @@ export function PlayerList({ players, currentPicks }: PlayerListProps) {
       // Create FormData for server action
       const formData = new FormData()
       formData.append('playerId', player.id)
+      formData.append('leagueId', leagueId)
       
       const result = await addPlayerToSquad(formData)
       

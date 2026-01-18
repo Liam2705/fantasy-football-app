@@ -38,22 +38,8 @@ const data = {
     },
     {
       title: "My Team",
-      url: "/team",
+      url: "/my-team",
       icon: Users,
-      items: [
-        {
-          title: "temp1",
-          url: "#",
-        },
-        {
-          title: "temp2",
-          url: "#",
-        },
-        {
-          title: "temp3",
-          url: "#",
-        },
-      ],
     },
     {
       title: "Leagues",
@@ -61,16 +47,16 @@ const data = {
       icon: Trophy,
       items: [
         {
-          title: "Standings",
-          url: "#",
+          title: "My Leagues",
+          url: "/leagues", 
         },
         {
           title: "Create a League",
-          url: "#",
+          url: "/leagues/create", 
         },
         {
           title: "Join a League",
-          url: "#",
+          url: "/leagues/join",
         },
       ],
     },
@@ -80,19 +66,11 @@ const data = {
       icon: Settings2,
       items: [
         {
-          title: "General",
+          title: "Profile",
           url: "#",
         },
         {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
+          title: "Team Name",
           url: "#",
         },
       ],
