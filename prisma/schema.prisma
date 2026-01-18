@@ -144,7 +144,7 @@ model DraftPick {
   
   createdAt   DateTime @default(now())
 
-  @@unique([userId, playerId])     // One user per player
+  @@unique([playerId, leagueId])     // One player per person in each league
   @@unique([userId, pickOrder])    // Unique draft order per user
   @@map("draft_picks")
 }
