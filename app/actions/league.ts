@@ -78,3 +78,85 @@ export async function createLeague(formData: FormData) {
         }
     }
 }
+
+export async function joinLeague(code: string) {
+  try {
+    // Authenticate the user
+    const user = await getOrCreateUser()
+    if (!user) {
+      return { success: false, error: "Unauthorized" }
+    }
+
+    // Validate the code format
+    if (!code || code.length !== 6) {
+      return { success: false, error: "Invalid league code format" }
+    }
+
+    // Find the league by code
+    const league = await prisma.league.findUnique({
+      where: { code: code.toUpperCase() },
+      include: { 
+        members: true // Include members to check if user already joined
+      }
+    })
+
+    // Check if league exists
+    if (!league) {
+      return { 
+        success: false, 
+        error: "League not found. Please check the code and try again." 
+      }
+    }
+
+    // Check if user already joined this league
+    const alreadyMember = league.members.some(
+      member => member.userId === user.id
+    )
+
+    if (alreadyMember) {
+      return { 
+        success: false, 
+        error: "You're already a member of this league" 
+      }
+    }
+
+    // Calculate the next draft position
+    // If there are 3 members, new member gets position 4
+    const nextDraftPosition = league.members.length + 1
+
+    // Add user as a league member
+    await prisma.leagueMember.create({
+      data: {
+        leagueId: league.id,
+        userId: user.id,
+        draftPosition: nextDraftPosition
+      }
+    })
+
+    // Refresh the leagues page and the specific league page
+    revalidatePath("/leagues")
+    revalidatePath(`/leagues/${league.id}`)
+    
+    // Return success with league ID for redirect
+    return { 
+      success: true, 
+      leagueId: league.id 
+    }
+    
+  } catch (error: any) {
+    console.error('Join league error:', error)
+    
+    // Handle unique constraint error (user already joined)
+    if (error.code === 'P2002') {
+      return { 
+        success: false, 
+        error: "You're already a member of this league" 
+      }
+    }
+    
+    return { 
+      success: false, 
+      error: "Failed to join league. Please try again." 
+    }
+  }
+}
