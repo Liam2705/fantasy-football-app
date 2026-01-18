@@ -14,14 +14,137 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  clerkId   String   @unique
-  email     String   @unique
+  id        String  @id @default(cuid())
+  clerkId   String  @unique
+  email     String  @unique
   firstName String?
   lastName  String?
-  username  String?   @unique
+  username  String? @unique
+
+  teamName    String?
+  totalPoints Int     @default(0)
+  currentRank Int     @default(0)
+
+  currentGameweek Int @default(1)
+
+  draftComplete Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  ownedLeague League?        @relation("LeagueOwner")
+  leagues     LeagueMember[]
+  draftPicks DraftPick[]
+
   @@index([clerkId])
+  @@map("users")
+}
+
+model League {
+  id         String  @id @default(cuid())
+  name       String
+  code       String  @unique
+  isPrivate  Boolean @default(true)
+  isDrafting Boolean @default(true)
+  draftOrder Json?
+
+  currentGameweek Int @default(1)
+
+  totalPointsLeaderboard Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner   User           @relation("LeagueOwner", fields: [ownerId], references: [id])
+  ownerId String         @unique
+  members LeagueMember[]
+  draftPicks DraftPick[]
+
+  @@map("leagues")
+}
+
+model LeagueMember {
+  id       String   @id @default(cuid())
+  leagueId String
+  league   League   @relation(fields: [leagueId], references: [id])
+  userId   String
+  user     User     @relation(fields: [userId], references: [id])
+  joinedAt DateTime @default(now())
+
+  draftPosition Int?
+
+  @@unique([leagueId, userId])
+  @@map("league_members")
+}
+
+model Player {
+  id String @id
+
+  firstName String
+  lastName  String
+  fullName  String
+
+  // Team
+  team            String // "Manchester United"
+  team_short_name String // "MUN"
+
+  // Position
+  element_type Int // 1=GK, 2=DEF, 3=MID, 4=FWD
+  position     Position @default(FWD)
+
+  total_points Int @default(0)
+  minutes      Int @default(0)
+  goals_scored Int @default(0)
+  assists      Int @default(0)
+  yellow_cards Int @default(0)
+  red_cards    Int @default(0)
+
+  //Status
+  status String @default("a") // a=Available, i=Injured
+
+  isDrafted Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  draftPicks DraftPick[]
+
+  @@unique([firstName, lastName, team_short_name])
+  @@map("players")
+}
+
+enum Position {
+  GK
+  DEF
+  MID
+  FWD
+}
+
+model DraftPick {
+  id          String   @id @default(cuid())
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  playerId    String
+  player      Player   @relation(fields: [playerId], references: [id])
+  
+  // Draft position (1-15)
+  pickOrder   Int      // 1st pick, 2nd pick, etc.
+  
+  // Lineup position
+  lineupSlot  Int      // 1-11=starters, 12-15=bench
+  
+  // Special roles
+  isCaptain   Boolean  @default(false)
+  isViceCaptain Boolean @default(false)
+  
+  leagueId    String?
+  league      League?  @relation(fields: [leagueId], references: [id])
+  
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, playerId])     // One user per player
+  @@unique([userId, pickOrder])    // Unique draft order per user
+  @@map("draft_picks")
 }

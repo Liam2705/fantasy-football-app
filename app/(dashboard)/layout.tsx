@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
+import { Toaster } from "sonner"
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const clerkUser = await currentUser();
@@ -61,6 +62,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         </header>
         <main className="p-6">{children}</main>
       </SidebarInset>
+      <Toaster position="top-right" />
     </SidebarProvider>
   );
 }

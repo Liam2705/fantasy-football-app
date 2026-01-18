@@ -93,7 +93,6 @@ export default async function Page() {
                 position: "FWD",
                 points: 7,
               },
-              // ... add 8 more starters
             ]}
             bench={[
               {
@@ -108,7 +107,6 @@ export default async function Page() {
                 position: "MID",
                 points: 0,
               },
-              // ... add 2 more bench players
             ]}
           />
         </div>
