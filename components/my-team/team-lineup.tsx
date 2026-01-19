@@ -1,49 +1,56 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { DraftPick, Player } from "@/app/generated/prisma/client"
-import { Shield, Star } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { DraftPick, Player } from "@/app/generated/prisma/client";
+import { Shield, Star } from "lucide-react";
+import { CaptainDialog } from "./captain-dialog";
 
 type TeamLineupProps = {
-  starters: (DraftPick & { player: Player })[]
-  captain: (DraftPick & { player: Player }) | undefined
-  viceCaptain: (DraftPick & { player: Player }) | undefined
-}
+  starters: (DraftPick & { player: Player })[];
+  captain: (DraftPick & { player: Player }) | undefined;
+  viceCaptain: (DraftPick & { player: Player }) | undefined;
+};
 
-export function TeamLineup({ 
-  starters, 
-  captain, 
+export function TeamLineup({
+  starters,
+  captain,
   viceCaptain,
 }: TeamLineupProps) {
-  
   // Group starters by position
   const lineup = {
-    GK: starters.filter(p => p.player.position === 'GK'),
-    DEF: starters.filter(p => p.player.position === 'DEF'),
-    MID: starters.filter(p => p.player.position === 'MID'),
-    FWD: starters.filter(p => p.player.position === 'FWD'),
-  }
+    GK: starters.filter((p) => p.player.position === "GK"),
+    DEF: starters.filter((p) => p.player.position === "DEF"),
+    MID: starters.filter((p) => p.player.position === "MID"),
+    FWD: starters.filter((p) => p.player.position === "FWD"),
+  };
 
   const getPositionColor = (pos: string) => {
-    switch(pos) {
-      case 'GK': return 'bg-blue-500'
-      case 'DEF': return 'bg-green-500'
-      case 'MID': return 'bg-yellow-500'
-      case 'FWD': return 'bg-red-500'
-      default: return 'bg-gray-500'
+    switch (pos) {
+      case "GK":
+        return "bg-blue-500";
+      case "DEF":
+        return "bg-green-500";
+      case "MID":
+        return "bg-yellow-500";
+      case "FWD":
+        return "bg-red-500";
+      default:
+        return "bg-gray-500";
     }
-  }
+  };
 
   const PlayerCard = ({ pick }: { pick: DraftPick & { player: Player } }) => {
-    const isCaptain = pick.id === captain?.id
-    const isViceCaptain = pick.id === viceCaptain?.id
+    const isCaptain = pick.id === captain?.id;
+    const isViceCaptain = pick.id === viceCaptain?.id;
 
     return (
       <div className="flex flex-col items-center gap-1">
         <div className="relative">
-          <div className={`${getPositionColor(pick.player.position)} text-white rounded-lg p-2 shadow-md w-16 sm:w-20`}>
+          <div
+            className={`${getPositionColor(pick.player.position)} text-white rounded-lg p-2 shadow-md w-16 sm:w-20`}
+          >
             <div className="text-center">
               <div className="text-xs font-bold truncate px-1">
                 {pick.player.lastName}
@@ -56,7 +63,7 @@ export function TeamLineup({
               </div>
             </div>
           </div>
-          
+
           {isCaptain && (
             <div className="absolute -top-1 -right-1 bg-yellow-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shadow-lg border-2 border-white">
               C
@@ -69,8 +76,8 @@ export function TeamLineup({
           )}
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <Card>
@@ -89,7 +96,7 @@ export function TeamLineup({
           {lineup.GK.length > 0 && (
             <div className="flex justify-center">
               <div className="flex gap-3 sm:gap-4">
-                {lineup.GK.map(pick => (
+                {lineup.GK.map((pick) => (
                   <PlayerCard key={pick.id} pick={pick} />
                 ))}
               </div>
@@ -100,7 +107,7 @@ export function TeamLineup({
           {lineup.DEF.length > 0 && (
             <div className="flex justify-center">
               <div className="flex gap-2 sm:gap-3 flex-wrap justify-center max-w-full">
-                {lineup.DEF.map(pick => (
+                {lineup.DEF.map((pick) => (
                   <PlayerCard key={pick.id} pick={pick} />
                 ))}
               </div>
@@ -111,7 +118,7 @@ export function TeamLineup({
           {lineup.MID.length > 0 && (
             <div className="flex justify-center">
               <div className="flex gap-2 sm:gap-3 flex-wrap justify-center max-w-full">
-                {lineup.MID.map(pick => (
+                {lineup.MID.map((pick) => (
                   <PlayerCard key={pick.id} pick={pick} />
                 ))}
               </div>
@@ -122,7 +129,7 @@ export function TeamLineup({
           {lineup.FWD.length > 0 && (
             <div className="flex justify-center">
               <div className="flex gap-2 sm:gap-3 flex-wrap justify-center max-w-full">
-                {lineup.FWD.map(pick => (
+                {lineup.FWD.map((pick) => (
                   <PlayerCard key={pick.id} pick={pick} />
                 ))}
               </div>
@@ -131,18 +138,22 @@ export function TeamLineup({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 // Captain Selection Component
 export function CaptainSelection({
   captain,
   viceCaptain,
+  userId,
+  leagueId,
+  starters,
 }: {
   captain: (DraftPick & { player: Player }) | undefined;
   viceCaptain: (DraftPick & { player: Player }) | undefined;
   userId: string;
   leagueId: string;
+  starters: (DraftPick & { player: Player })[];
 }) {
   return (
     <Card>
@@ -165,9 +176,13 @@ export function CaptainSelection({
                   {captain.player.position}
                 </div>
               </div>
-              <Button size="sm" variant="ghost" className="text-xs px-2 h-7">
-                Change
-              </Button>
+              <CaptainDialog
+                starters={starters}
+                currentCaptain={captain}
+                currentViceCaptain={viceCaptain}
+                type="captain"
+                leagueId={leagueId}
+              />
             </div>
           ) : (
             <div className="text-sm text-muted-foreground p-3 border border-dashed rounded-lg text-center">
@@ -189,9 +204,13 @@ export function CaptainSelection({
                   {viceCaptain.player.position}
                 </div>
               </div>
-              <Button size="sm" variant="ghost" className="text-xs px-2 h-7">
-                Change
-              </Button>
+              <CaptainDialog
+                starters={starters}
+                currentCaptain={captain}
+                currentViceCaptain={viceCaptain}
+                type="captain"
+                leagueId={leagueId}
+              />
             </div>
           ) : (
             <div className="text-sm text-muted-foreground p-3 border border-dashed rounded-lg text-center">

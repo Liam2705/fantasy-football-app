@@ -69,11 +69,6 @@ export default async function LeagueDetailPage({
     redirect('/leagues')
   }
 
-  // If user already completed draft, redirect to my-team
-  if (user.draftComplete) {
-    redirect('/my-team')
-  }
-
   // Count how many members have completed draft
   const membersWithDraft = league.members.filter(m => m.user.draftComplete).length
   const totalMembers = league.members.length

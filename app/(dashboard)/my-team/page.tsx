@@ -16,7 +16,7 @@ const VALID_FORMATIONS = [
   { def: 5, mid: 4, fwd: 1, name: '5-4-1' },
 ]
 
-function assignFormation(picks: any[]) {
+async function assignFormation(picks: any[], userId: string, leagueId: string) {
   // Count available players by position
   const available = {
     GK: picks.filter(p => p.player.position === 'GK'),
@@ -48,6 +48,24 @@ function assignFormation(picks: any[]) {
       // Remaining players go to bench
       const starterIds = new Set(starters.map(s => s.id))
       const bench = picks.filter(p => !starterIds.has(p.id))
+
+      // Updates the lineup slots to match UI
+      await prisma.$transaction([
+        // Update starters (lineup slots 1-11)
+        ...starters.map((pick, index) => 
+          prisma.draftPick.update({
+            where: { id: pick.id },
+            data: { lineupSlot: index + 1 }
+          })
+        ),
+        // Update bench (lineup slots 12-15)
+        ...bench.map((pick, index) => 
+          prisma.draftPick.update({
+            where: { id: pick.id },
+            data: { lineupSlot: 12 + index }
+          })
+        )
+      ])
 
       return {
         starters,
@@ -105,12 +123,12 @@ export default async function MyTeamPage() {
       player: true
     },
     orderBy: [
-      { lineupSlot: 'asc' } // Respect user's lineup preference if set
+      { pickOrder: 'asc' } // Respect user's lineup preference if set
     ]
   })
 
   // Assign formation and split starters/bench
-  const lineup = assignFormation(draftPicks)
+  const lineup = await assignFormation(draftPicks, user.id, userLeague.id)
 
   if (!lineup) {
     return (
@@ -210,6 +228,7 @@ export default async function MyTeamPage() {
             viceCaptain={viceCaptain}
             userId={user.id}
             leagueId={userLeague.id}
+            starters={starters}
           />
         </div>
       </div>
