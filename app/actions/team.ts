@@ -103,3 +103,126 @@ export async function setViceCaptain(pickId: string, leagueId: string) {
     return { success: false, error: "Failed to set vice-captain" }
   }
 }
+
+export async function swapPlayers(pickId1: string, pickId2: string, leagueId: string) {
+  try {
+    console.log('=== SWAP PLAYERS ACTION ===')
+    const user = await getOrCreateUser()
+    if (!user) {
+      return { success: false, error: "Unauthorized" }
+    }
+
+    // Get both picks
+    const [pick1, pick2] = await Promise.all([
+      prisma.draftPick.findUnique({ 
+        where: { id: pickId1 },
+        include: { player: true }
+      }),
+      prisma.draftPick.findUnique({ 
+        where: { id: pickId2 },
+        include: { player: true }
+      })
+    ])
+
+    if (!pick1 || !pick2) {
+      return { success: false, error: "Players not found" }
+    }
+
+    if (pick1.userId !== user.id || pick2.userId !== user.id) {
+      return { success: false, error: "Unauthorized" }
+    }
+
+    if (pick1.leagueId !== leagueId || pick2.leagueId !== leagueId) {
+      return { success: false, error: "Invalid league" }
+    }
+
+    // Check if swap would break formation (one must be starter, one must be bench)
+    const isValidSwap = 
+      (pick1.lineupSlot <= 11 && pick2.lineupSlot > 11) ||
+      (pick1.lineupSlot > 11 && pick2.lineupSlot <= 11)
+
+    if (!isValidSwap) {
+      return { 
+        success: false, 
+        error: "Can only swap between starters and substitutes" 
+      }
+    }
+
+    // Get all picks for this user/league to validate formation
+    const allPicks = await prisma.draftPick.findMany({
+      where: { userId: user.id, leagueId },
+      include: { player: true }
+    })
+
+    // Simulate the swap to check if formation is valid
+    const simulatedPicks = allPicks.map(p => {
+      if (p.id === pick1.id) return { ...p, lineupSlot: pick2.lineupSlot }
+      if (p.id === pick2.id) return { ...p, lineupSlot: pick1.lineupSlot }
+      return p
+    })
+
+    // Count positions in starting 11 after swap
+    const starters = simulatedPicks.filter(p => p.lineupSlot <= 11)
+    const positionCounts = {
+      GK: starters.filter(p => p.player.position === 'GK').length,
+      DEF: starters.filter(p => p.player.position === 'DEF').length,
+      MID: starters.filter(p => p.player.position === 'MID').length,
+      FWD: starters.filter(p => p.player.position === 'FWD').length,
+    }
+
+    console.log('Formation after swap:', positionCounts)
+
+    // Must have exactly 1 GK
+    if (positionCounts.GK !== 1) {
+      return { 
+        success: false, 
+        error: "Must have exactly 1 goalkeeper in starting lineup" 
+      }
+    }
+
+    // Check if formation is valid
+    const VALID_FORMATIONS = [
+      { def: 3, mid: 4, fwd: 3 },
+      { def: 3, mid: 5, fwd: 2 },
+      { def: 4, mid: 3, fwd: 3 },
+      { def: 4, mid: 4, fwd: 2 },
+      { def: 4, mid: 5, fwd: 1 },
+      { def: 5, mid: 3, fwd: 2 },
+      { def: 5, mid: 4, fwd: 1 },
+    ]
+
+    const isValidFormation = VALID_FORMATIONS.some(f => 
+      f.def === positionCounts.DEF &&
+      f.mid === positionCounts.MID &&
+      f.fwd === positionCounts.FWD
+    )
+
+    if (!isValidFormation) {
+      return { 
+        success: false, 
+        error: `Invalid formation: ${positionCounts.DEF}-${positionCounts.MID}-${positionCounts.FWD} is not allowed` 
+      }
+    }
+
+    // Perform the swap
+    await prisma.$transaction([
+      prisma.draftPick.update({
+        where: { id: pickId1 },
+        data: { lineupSlot: pick2.lineupSlot }
+      }),
+      prisma.draftPick.update({
+        where: { id: pickId2 },
+        data: { lineupSlot: pick1.lineupSlot }
+      })
+    ])
+
+    revalidatePath(`/my-team`)
+    return { success: true }
+
+  } catch (error) {
+    return { success: false, error: "Failed to swap players" }
+  }
+}
+
+
+

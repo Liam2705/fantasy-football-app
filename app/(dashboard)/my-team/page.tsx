@@ -30,6 +30,35 @@ async function assignFormation(picks: any[], userId: string, leagueId: string) {
     return null
   }
 
+
+  const hasValidLineup = picks.every((p, idx) => {
+    // Check if all picks have sequential lineup slots
+    const expectedSlots = picks.map((_, i) => i + 1).sort((a, b) => a - b)
+    const actualSlots = picks.map(p => p.lineupSlot).sort((a, b) => a - b)
+    return JSON.stringify(expectedSlots) === JSON.stringify(actualSlots)
+  })
+
+  if (hasValidLineup) {
+    // Just return current state based on lineup slots
+    const starters = picks.filter(p => p.lineupSlot <= 11).sort((a, b) => a.lineupSlot - b.lineupSlot)
+    const bench = picks.filter(p => p.lineupSlot > 11).sort((a, b) => a.lineupSlot - b.lineupSlot)
+    
+    // Calculate formation from current starters
+    const starterPositions = {
+      DEF: starters.filter(p => p.player.position === 'DEF').length,
+      MID: starters.filter(p => p.player.position === 'MID').length,
+      FWD: starters.filter(p => p.player.position === 'FWD').length,
+    }
+    const formationName = `${starterPositions.DEF}-${starterPositions.MID}-${starterPositions.FWD}`
+    
+    return {
+      starters,
+      bench,
+      formation: formationName
+    }
+  }
+
+
   // Find a valid formation that fits available players
   for (const formation of VALID_FORMATIONS) {
     if (
@@ -48,6 +77,14 @@ async function assignFormation(picks: any[], userId: string, leagueId: string) {
       // Remaining players go to bench
       const starterIds = new Set(starters.map(s => s.id))
       const bench = picks.filter(p => !starterIds.has(p.id))
+
+      // Sort by position order (GK=1, DEF=2, MID=3, FWD=4)
+      const positionOrder = { GK: 1, DEF: 2, MID: 3, FWD: 4 }
+      const sortedStarters = [...starters].sort((a, b) => {
+        const aOrder = positionOrder[a.player.position as keyof typeof positionOrder]
+        const bOrder = positionOrder[b.player.position as keyof typeof positionOrder]
+        return aOrder - bOrder
+      })
 
       // Updates the lineup slots to match UI
       await prisma.$transaction([
@@ -216,12 +253,14 @@ export default async function MyTeamPage() {
             starters={starters}
             captain={captain}
             viceCaptain={viceCaptain}
+            bench={bench}
+            leagueId={userLeague.id}
           />
         </div>
 
         {/* Subs & Captain */}
         <div className="space-y-4 order-2">
-          <BenchPlayers bench={bench} />
+          <BenchPlayers bench={bench} starters={starters} leagueId={userLeague.id} />
           
           <CaptainSelection 
             captain={captain}

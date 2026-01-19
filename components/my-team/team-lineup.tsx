@@ -4,20 +4,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DraftPick, Player } from "@/app/generated/prisma/client";
-import { Shield, Star } from "lucide-react";
+import { ArrowDownUp, Shield, Star } from "lucide-react";
 import { CaptainDialog } from "./captain-dialog";
+import { useState } from "react";
+import { SwapDialog } from "./swap-dialog";
 
 type TeamLineupProps = {
   starters: (DraftPick & { player: Player })[];
   captain: (DraftPick & { player: Player }) | undefined;
   viceCaptain: (DraftPick & { player: Player }) | undefined;
+  bench: (DraftPick & { player: Player })[]
+  leagueId: string
 };
 
 export function TeamLineup({
   starters,
   captain,
   viceCaptain,
+  bench,
+  leagueId
 }: TeamLineupProps) {
+ 
+
   // Group starters by position
   const lineup = {
     GK: starters.filter((p) => p.player.position === "GK"),
@@ -47,9 +55,9 @@ export function TeamLineup({
 
     return (
       <div className="flex flex-col items-center gap-1">
-        <div className="relative">
+        <div className="relative group">
           <div
-            className={`${getPositionColor(pick.player.position)} text-white rounded-lg p-2 shadow-md w-16 sm:w-20`}
+            className={`${getPositionColor(pick.player.position)} text-white rounded-lg p-2 shadow-md w-16 sm:w-20 transition-all`}
           >
             <div className="text-center">
               <div className="text-xs font-bold truncate px-1">
@@ -226,48 +234,67 @@ export function CaptainSelection({
 // Subs Bench Component
 export function BenchPlayers({
   bench,
+  starters,
+  leagueId
 }: {
-  bench: (DraftPick & { player: Player })[];
+  bench: (DraftPick & { player: Player })[]
+  starters: (DraftPick & { player: Player })[]
+  leagueId: string
 }) {
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base sm:text-lg">Substitutes</CardTitle>
-      </CardHeader>
-      <CardContent className="pb-4">
-        <div className="space-y-2 max-h-[300px] overflow-y-auto">
-          {bench.map((pick, index) => (
-            <div
-              key={pick.id}
-              className="flex items-center gap-2 p-2 border rounded-lg"
-            >
-              <div className="flex-shrink-0 w-6 h-6 bg-muted rounded flex items-center justify-center text-xs font-semibold">
-                {index + 1}
-              </div>
-              <Badge variant="outline" className="flex-shrink-0 text-xs">
-                {pick.player.position}
-              </Badge>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium truncate">
-                  {pick.player.fullName}
-                </div>
-                <div className="text-xs text-muted-foreground truncate">
-                  {pick.player.team_short_name}
-                </div>
-              </div>
-              <div className="text-sm font-bold flex-shrink-0">
-                {pick.player.total_points}
-              </div>
-            </div>
-          ))}
+  const [swapPlayerId, setSwapPlayerId] = useState<string | null>(null)
 
-          {bench.length === 0 && (
-            <div className="text-sm text-muted-foreground text-center py-6">
-              No substitutes
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
+  const selectedPlayer = bench.find(p => p.id === swapPlayerId)
+
+  return (
+    <>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base sm:text-lg">Substitutes</CardTitle>
+        </CardHeader>
+        <CardContent className="pb-4">
+          <div className="space-y-2 max-h-[300px] overflow-y-auto">
+            {bench.map((pick, index) => (
+              <div key={pick.id} className="flex items-center gap-2 p-2 border rounded-lg">
+                <div className="flex-shrink-0 w-6 h-6 bg-muted rounded flex items-center justify-center text-xs font-semibold">
+                  {index + 1}
+                </div>
+                <Badge variant="outline" className="flex-shrink-0 text-xs">
+                  {pick.player.position}
+                </Badge>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium truncate">{pick.player.fullName}</div>
+                  <div className="text-xs text-muted-foreground truncate">{pick.player.team_short_name}</div>
+                </div>
+                <div className="text-sm font-bold flex-shrink-0">{pick.player.total_points}</div>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7 flex-shrink-0"
+                  onClick={() => setSwapPlayerId(pick.id)}
+                >
+                  <ArrowDownUp className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            
+            {bench.length === 0 && (
+              <div className="text-sm text-muted-foreground text-center py-6">
+                No substitutes
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {selectedPlayer && (
+        <SwapDialog
+          benchPlayer={selectedPlayer}
+          starters={starters}
+          leagueId={leagueId}
+          open={!!swapPlayerId}
+          onOpenChange={(open) => !open && setSwapPlayerId(null)}
+        />
+      )}
+    </>
+  )
 }
