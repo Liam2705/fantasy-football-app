@@ -34,7 +34,7 @@ model User {
 
   ownedLeague League?        @relation("LeagueOwner")
   leagues     LeagueMember[]
-  draftPicks DraftPick[]
+  draftPicks  DraftPick[]
 
   @@index([clerkId])
   @@map("users")
@@ -55,9 +55,9 @@ model League {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  owner   User           @relation("LeagueOwner", fields: [ownerId], references: [id])
-  ownerId String         @unique
-  members LeagueMember[]
+  owner      User           @relation("LeagueOwner", fields: [ownerId], references: [id])
+  ownerId    String         @unique
+  members    LeagueMember[]
   draftPicks DraftPick[]
 
   @@map("leagues")
@@ -107,7 +107,8 @@ model Player {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  draftPicks DraftPick[]
+  draftPicks    DraftPick[]
+  gameweekStats PlayerGameweek[]
 
   @@unique([firstName, lastName, team_short_name])
   @@map("players")
@@ -121,31 +122,47 @@ enum Position {
 }
 
 model DraftPick {
-  id          String   @id @default(cuid())
-  
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  
-  playerId    String
-  player      Player   @relation(fields: [playerId], references: [id])
-  
-  // Draft position (1-15)
-  pickOrder   Int      // 1st pick, 2nd pick, etc.
-  
-  // Lineup position
-  lineupSlot  Int      // 1-11=starters, 12-15=bench
-  
-  // Special roles
-  isCaptain   Boolean  @default(false)
-  isViceCaptain Boolean @default(false)
-  
-  leagueId    String?
-  league      League?  @relation(fields: [leagueId], references: [id])
-  
-  createdAt   DateTime @default(now())
+  id String @id @default(cuid())
 
-  @@unique([playerId, leagueId])     // One player per person in each league
-  @@unique([userId, pickOrder, leagueId])    // Unique draft order per user
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  playerId String
+  player   Player @relation(fields: [playerId], references: [id])
+
+  // Draft position (1-15)
+  pickOrder Int // 1st pick, 2nd pick, etc.
+
+  // Lineup position
+  lineupSlot Int // 1-11=starters, 12-15=bench
+
+  // Special roles
+  isCaptain     Boolean @default(false)
+  isViceCaptain Boolean @default(false)
+
+  leagueId String?
+  league   League? @relation(fields: [leagueId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([playerId, leagueId]) // One player per person in each league
+  @@unique([userId, pickOrder, leagueId]) // Unique draft order per user
   @@unique([userId, playerId, leagueId]) // User can have the same player in different leagues
   @@map("draft_picks")
+}
+
+model PlayerGameweek {
+  id          String  @id @default(cuid())
+  playerId    String
+  gameweek    Int
+  points      Int     @default(0)
+  minutes     Int     @default(0)
+  goals       Int     @default(0)
+  assists     Int     @default(0)
+  cleanSheets Boolean @default(false)
+
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, gameweek])
+  @@index([gameweek])
 }

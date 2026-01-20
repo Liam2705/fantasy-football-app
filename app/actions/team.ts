@@ -106,7 +106,7 @@ export async function setViceCaptain(pickId: string, leagueId: string) {
 
 export async function swapPlayers(pickId1: string, pickId2: string, leagueId: string) {
   try {
-    console.log('=== SWAP PLAYERS ACTION ===')
+    
     const user = await getOrCreateUser()
     if (!user) {
       return { success: false, error: "Unauthorized" }
@@ -170,7 +170,6 @@ export async function swapPlayers(pickId1: string, pickId2: string, leagueId: st
       FWD: starters.filter(p => p.player.position === 'FWD').length,
     }
 
-    console.log('Formation after swap:', positionCounts)
 
     // Must have exactly 1 GK
     if (positionCounts.GK !== 1) {

@@ -13,8 +13,9 @@ type TeamLineupProps = {
   starters: (DraftPick & { player: Player })[];
   captain: (DraftPick & { player: Player }) | undefined;
   viceCaptain: (DraftPick & { player: Player }) | undefined;
-  bench: (DraftPick & { player: Player })[]
-  leagueId: string
+  bench: (DraftPick & { player: Player })[];
+  leagueId: string;
+  playerPoints?: Map<string, number>
 };
 
 export function TeamLineup({
@@ -22,9 +23,12 @@ export function TeamLineup({
   captain,
   viceCaptain,
   bench,
-  leagueId
+  leagueId,
+  playerPoints
 }: TeamLineupProps) {
- 
+
+
+  
 
   // Group starters by position
   const lineup = {
@@ -52,6 +56,8 @@ export function TeamLineup({
   const PlayerCard = ({ pick }: { pick: DraftPick & { player: Player } }) => {
     const isCaptain = pick.id === captain?.id;
     const isViceCaptain = pick.id === viceCaptain?.id;
+    const displayPoints = playerPoints?.get(pick.id) ?? pick.player.total_points;
+  
 
     return (
       <div className="flex flex-col items-center gap-1">
@@ -66,8 +72,8 @@ export function TeamLineup({
               <div className="text-[10px] opacity-90 truncate">
                 {pick.player.team_short_name}
               </div>
-              <div className="text-base sm:text-lg font-bold mt-0.5">
-                {pick.player.total_points}
+              <div className={`text-base sm:text-lg font-bold mt-0.5 ${isCaptain ? 'text-yellow-300' : ''}`}>
+                {displayPoints}
               </div>
             </div>
           </div>
@@ -216,7 +222,7 @@ export function CaptainSelection({
                 starters={starters}
                 currentCaptain={captain}
                 currentViceCaptain={viceCaptain}
-                type="captain"
+                type="vice-captain"
                 leagueId={leagueId}
               />
             </div>
@@ -235,15 +241,15 @@ export function CaptainSelection({
 export function BenchPlayers({
   bench,
   starters,
-  leagueId
+  leagueId,
 }: {
-  bench: (DraftPick & { player: Player })[]
-  starters: (DraftPick & { player: Player })[]
-  leagueId: string
+  bench: (DraftPick & { player: Player })[];
+  starters: (DraftPick & { player: Player })[];
+  leagueId: string;
 }) {
-  const [swapPlayerId, setSwapPlayerId] = useState<string | null>(null)
+  const [swapPlayerId, setSwapPlayerId] = useState<string | null>(null);
 
-  const selectedPlayer = bench.find(p => p.id === swapPlayerId)
+  const selectedPlayer = bench.find((p) => p.id === swapPlayerId);
 
   return (
     <>
@@ -254,7 +260,10 @@ export function BenchPlayers({
         <CardContent className="pb-4">
           <div className="space-y-2 max-h-[300px] overflow-y-auto">
             {bench.map((pick, index) => (
-              <div key={pick.id} className="flex items-center gap-2 p-2 border rounded-lg">
+              <div
+                key={pick.id}
+                className="flex items-center gap-2 p-2 border rounded-lg"
+              >
                 <div className="flex-shrink-0 w-6 h-6 bg-muted rounded flex items-center justify-center text-xs font-semibold">
                   {index + 1}
                 </div>
@@ -262,10 +271,16 @@ export function BenchPlayers({
                   {pick.player.position}
                 </Badge>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate">{pick.player.fullName}</div>
-                  <div className="text-xs text-muted-foreground truncate">{pick.player.team_short_name}</div>
+                  <div className="text-sm font-medium truncate">
+                    {pick.player.fullName}
+                  </div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {pick.player.team_short_name}
+                  </div>
                 </div>
-                <div className="text-sm font-bold flex-shrink-0">{pick.player.total_points}</div>
+                <div className="text-sm font-bold flex-shrink-0">
+                  {pick.player.total_points}
+                </div>
                 <Button
                   size="icon"
                   variant="ghost"
@@ -276,7 +291,7 @@ export function BenchPlayers({
                 </Button>
               </div>
             ))}
-            
+
             {bench.length === 0 && (
               <div className="text-sm text-muted-foreground text-center py-6">
                 No substitutes
@@ -296,5 +311,5 @@ export function BenchPlayers({
         />
       )}
     </>
-  )
+  );
 }

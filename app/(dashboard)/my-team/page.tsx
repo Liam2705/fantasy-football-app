@@ -1,63 +1,76 @@
-import { getOrCreateUser } from "@/lib/user"
-import prisma from "@/lib/db"
-import { redirect } from "next/navigation"
-import { TeamLineup, CaptainSelection, BenchPlayers } from "@/components/my-team/team-lineup"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { getOrCreateUser } from "@/lib/user";
+import prisma from "@/lib/db";
+import { redirect } from "next/navigation";
+import {
+  TeamLineup,
+  CaptainSelection,
+  BenchPlayers,
+} from "@/components/my-team/team-lineup";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { calculateGameweekPoints } from "@/app/actions/gameweek-actions";
 
 // Valid formations (DEF-MID-FWD, GK is always 1)
 const VALID_FORMATIONS = [
-  { def: 3, mid: 4, fwd: 3, name: '3-4-3' },
-  { def: 3, mid: 5, fwd: 2, name: '3-5-2' },
-  { def: 4, mid: 3, fwd: 3, name: '4-3-3' },
-  { def: 4, mid: 4, fwd: 2, name: '4-4-2' },
-  { def: 4, mid: 5, fwd: 1, name: '4-5-1' },
-  { def: 5, mid: 3, fwd: 2, name: '5-3-2' },
-  { def: 5, mid: 4, fwd: 1, name: '5-4-1' },
-]
+  { def: 3, mid: 4, fwd: 3, name: "3-4-3" },
+  { def: 3, mid: 5, fwd: 2, name: "3-5-2" },
+  { def: 4, mid: 3, fwd: 3, name: "4-3-3" },
+  { def: 4, mid: 4, fwd: 2, name: "4-4-2" },
+  { def: 4, mid: 5, fwd: 1, name: "4-5-1" },
+  { def: 5, mid: 3, fwd: 2, name: "5-3-2" },
+  { def: 5, mid: 4, fwd: 1, name: "5-4-1" },
+];
 
 async function assignFormation(picks: any[], userId: string, leagueId: string) {
   // Count available players by position
   const available = {
-    GK: picks.filter(p => p.player.position === 'GK'),
-    DEF: picks.filter(p => p.player.position === 'DEF'),
-    MID: picks.filter(p => p.player.position === 'MID'),
-    FWD: picks.filter(p => p.player.position === 'FWD'),
-  }
+    GK: picks.filter((p) => p.player.position === "GK"),
+    DEF: picks.filter((p) => p.player.position === "DEF"),
+    MID: picks.filter((p) => p.player.position === "MID"),
+    FWD: picks.filter((p) => p.player.position === "FWD"),
+  };
 
   // Must have at least 1 GK
   if (available.GK.length === 0) {
-    return null
+    return null;
   }
-
 
   const hasValidLineup = picks.every((p, idx) => {
     // Check if all picks have sequential lineup slots
-    const expectedSlots = picks.map((_, i) => i + 1).sort((a, b) => a - b)
-    const actualSlots = picks.map(p => p.lineupSlot).sort((a, b) => a - b)
-    return JSON.stringify(expectedSlots) === JSON.stringify(actualSlots)
-  })
+    const expectedSlots = picks.map((_, i) => i + 1).sort((a, b) => a - b);
+    const actualSlots = picks.map((p) => p.lineupSlot).sort((a, b) => a - b);
+    return JSON.stringify(expectedSlots) === JSON.stringify(actualSlots);
+  });
 
   if (hasValidLineup) {
     // Just return current state based on lineup slots
-    const starters = picks.filter(p => p.lineupSlot <= 11).sort((a, b) => a.lineupSlot - b.lineupSlot)
-    const bench = picks.filter(p => p.lineupSlot > 11).sort((a, b) => a.lineupSlot - b.lineupSlot)
-    
+    const starters = picks
+      .filter((p) => p.lineupSlot <= 11)
+      .sort((a, b) => a.lineupSlot - b.lineupSlot);
+    const bench = picks
+      .filter((p) => p.lineupSlot > 11)
+      .sort((a, b) => a.lineupSlot - b.lineupSlot);
+
     // Calculate formation from current starters
     const starterPositions = {
-      DEF: starters.filter(p => p.player.position === 'DEF').length,
-      MID: starters.filter(p => p.player.position === 'MID').length,
-      FWD: starters.filter(p => p.player.position === 'FWD').length,
-    }
-    const formationName = `${starterPositions.DEF}-${starterPositions.MID}-${starterPositions.FWD}`
-    
+      DEF: starters.filter((p) => p.player.position === "DEF").length,
+      MID: starters.filter((p) => p.player.position === "MID").length,
+      FWD: starters.filter((p) => p.player.position === "FWD").length,
+    };
+    const formationName = `${starterPositions.DEF}-${starterPositions.MID}-${starterPositions.FWD}`;
+
     return {
       starters,
       bench,
-      formation: formationName
-    }
+      formation: formationName,
+    };
   }
-
 
   // Find a valid formation that fits available players
   for (const formation of VALID_FORMATIONS) {
@@ -72,43 +85,45 @@ async function assignFormation(picks: any[], userId: string, leagueId: string) {
         ...available.DEF.slice(0, formation.def),
         ...available.MID.slice(0, formation.mid),
         ...available.FWD.slice(0, formation.fwd),
-      ]
+      ];
 
       // Remaining players go to bench
-      const starterIds = new Set(starters.map(s => s.id))
-      const bench = picks.filter(p => !starterIds.has(p.id))
+      const starterIds = new Set(starters.map((s) => s.id));
+      const bench = picks.filter((p) => !starterIds.has(p.id));
 
       // Sort by position order (GK=1, DEF=2, MID=3, FWD=4)
-      const positionOrder = { GK: 1, DEF: 2, MID: 3, FWD: 4 }
+      const positionOrder = { GK: 1, DEF: 2, MID: 3, FWD: 4 };
       const sortedStarters = [...starters].sort((a, b) => {
-        const aOrder = positionOrder[a.player.position as keyof typeof positionOrder]
-        const bOrder = positionOrder[b.player.position as keyof typeof positionOrder]
-        return aOrder - bOrder
-      })
+        const aOrder =
+          positionOrder[a.player.position as keyof typeof positionOrder];
+        const bOrder =
+          positionOrder[b.player.position as keyof typeof positionOrder];
+        return aOrder - bOrder;
+      });
 
       // Updates the lineup slots to match UI
       await prisma.$transaction([
         // Update starters (lineup slots 1-11)
-        ...starters.map((pick, index) => 
+        ...starters.map((pick, index) =>
           prisma.draftPick.update({
             where: { id: pick.id },
-            data: { lineupSlot: index + 1 }
+            data: { lineupSlot: index + 1 },
           })
         ),
         // Update bench (lineup slots 12-15)
-        ...bench.map((pick, index) => 
+        ...bench.map((pick, index) =>
           prisma.draftPick.update({
             where: { id: pick.id },
-            data: { lineupSlot: 12 + index }
+            data: { lineupSlot: 12 + index },
           })
-        )
-      ])
+        ),
+      ]);
 
       return {
         starters,
         bench,
-        formation: formation.name
-      }
+        formation: formation.name,
+      };
     }
   }
 
@@ -116,56 +131,59 @@ async function assignFormation(picks: any[], userId: string, leagueId: string) {
   return {
     starters: picks.slice(0, 11),
     bench: picks.slice(11, 15),
-    formation: 'Custom'
-  }
+    formation: "Custom",
+  };
 }
 
 export default async function MyTeamPage() {
-  const user = await getOrCreateUser()
-  
+  const user = await getOrCreateUser();
+
   if (!user) {
-    redirect('/sign-in')
+    redirect("/sign-in");
   }
 
   if (!user.draftComplete) {
-    redirect('/leagues')
+    redirect("/leagues");
   }
 
   // Get user's primary league
   const userLeague = await prisma.league.findFirst({
     where: {
-      OR: [
-        { ownerId: user.id },
-        { members: { some: { userId: user.id } } }
-      ]
+      OR: [{ ownerId: user.id }, { members: { some: { userId: user.id } } }],
     },
     include: {
       members: {
-        where: { userId: user.id }
-      }
-    }
-  })
+        where: { userId: user.id },
+      },
+    },
+  });
 
   if (!userLeague) {
-    redirect('/leagues')
+    redirect("/leagues");
   }
 
   // Get user's draft picks
   const draftPicks = await prisma.draftPick.findMany({
     where: {
       userId: user.id,
-      leagueId: userLeague.id
+      leagueId: userLeague.id,
     },
     include: {
-      player: true
+      player: {
+        include: {
+          gameweekStats: {
+            where: { gameweek: userLeague.currentGameweek },
+          },
+        },
+      },
     },
     orderBy: [
-      { pickOrder: 'asc' } // Respect user's lineup preference if set
-    ]
-  })
+      { pickOrder: "asc" }, // Respect user's lineup preference if set
+    ],
+  });
 
   // Assign formation and split starters/bench
-  const lineup = await assignFormation(draftPicks, user.id, userLeague.id)
+  const lineup = await assignFormation(draftPicks, user.id, userLeague.id);
 
   if (!lineup) {
     return (
@@ -177,17 +195,46 @@ export default async function MyTeamPage() {
           </p>
         </div>
       </div>
-    )
+    );
   }
 
-  const { starters, bench, formation } = lineup
+  const { starters, bench, formation } = lineup;
 
   // Get captain and vice-captain
-  const captain = draftPicks.find(p => p.isCaptain)
-  const viceCaptain = draftPicks.find(p => p.isViceCaptain)
+  const captain = draftPicks.find((p) => p.isCaptain);
+  const viceCaptain = draftPicks.find((p) => p.isViceCaptain);
 
-  // Calculate total points from starters
-  const totalPoints = starters.reduce((sum: number, pick: any) => sum + pick.player.total_points, 0)
+  // Calculate gameweek points WITH captain multiplier
+  const gwPointsResult = await calculateGameweekPoints(
+    userLeague.id,
+    userLeague.currentGameweek
+  );
+
+  const gameweekPoints = gwPointsResult.points;
+
+  const playerPointsMap = new Map<string, number>();
+  for (const pick of starters) {
+    const gameweekData = pick.player.gameweekStats?.[0];
+    let points = gameweekData?.points ?? pick.player.total_points;
+
+    // Double for captain
+    if (pick.id === captain?.id) {
+      const captainPlayed = !gameweekData || gameweekData.minutes > 0;
+      if (captainPlayed) {
+        points *= 2;
+      }
+    }
+    // Double for vice if captain didn't play
+    else if (pick.id === viceCaptain?.id && captain) {
+      const captainData = starters.find((s) => s.id === captain.id)?.player
+        .gameweekStats?.[0];
+      if (captainData && captainData.minutes === 0) {
+        points *= 2;
+      }
+    }
+
+    playerPointsMap.set(pick.id, points);
+  }
 
   return (
     <div className="flex-1 p-4 sm:p-6">
@@ -195,7 +242,9 @@ export default async function MyTeamPage() {
       <div className="mb-4 sm:mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold">{user.teamName || 'My Team'}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">
+              {user.teamName || "My Team"}
+            </h1>
             <p className="text-sm text-muted-foreground">
               Gameweek {userLeague.currentGameweek} • {userLeague.name}
             </p>
@@ -210,19 +259,27 @@ export default async function MyTeamPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
         <Card>
           <CardHeader className="pb-2 p-4">
-            <CardDescription className="text-xs">Gameweek Points</CardDescription>
+            <CardDescription className="text-xs">
+              Gameweek Points
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <div className="text-xl sm:text-2xl font-bold">{totalPoints}</div>
+            <div className="text-xl sm:text-2xl font-bold">
+              {gameweekPoints}
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2 p-4">
-            <CardDescription className="text-xs">Overall Points</CardDescription>
+            <CardDescription className="text-xs">
+              Overall Points
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <div className="text-xl sm:text-2xl font-bold">{user.totalPoints}</div>
+            <div className="text-xl sm:text-2xl font-bold">
+              {user.totalPoints}
+            </div>
           </CardContent>
         </Card>
 
@@ -231,13 +288,17 @@ export default async function MyTeamPage() {
             <CardDescription className="text-xs">Overall Rank</CardDescription>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <div className="text-xl sm:text-2xl font-bold">{user.currentRank || '-'}</div>
+            <div className="text-xl sm:text-2xl font-bold">
+              {user.currentRank || "-"}
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2 p-4">
-            <CardDescription className="text-xs">Transfers Left</CardDescription>
+            <CardDescription className="text-xs">
+              Transfers Left
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="text-xl sm:text-2xl font-bold">∞</div>
@@ -249,20 +310,25 @@ export default async function MyTeamPage() {
       <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">
         {/* Starting 11 */}
         <div className="lg:col-span-2 order-1">
-          <TeamLineup 
+          <TeamLineup
             starters={starters}
             captain={captain}
             viceCaptain={viceCaptain}
             bench={bench}
             leagueId={userLeague.id}
+            playerPoints={playerPointsMap}
           />
         </div>
 
         {/* Subs & Captain */}
         <div className="space-y-4 order-2">
-          <BenchPlayers bench={bench} starters={starters} leagueId={userLeague.id} />
-          
-          <CaptainSelection 
+          <BenchPlayers
+            bench={bench}
+            starters={starters}
+            leagueId={userLeague.id}
+          />
+
+          <CaptainSelection
             captain={captain}
             viceCaptain={viceCaptain}
             userId={user.id}
@@ -272,5 +338,5 @@ export default async function MyTeamPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
