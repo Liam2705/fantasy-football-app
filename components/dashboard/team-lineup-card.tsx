@@ -57,12 +57,12 @@ export function TeamLineupCard({
                 key={player.name}
                 className="flex items-center gap-2 p-3 bg-muted/50 hover:bg-muted rounded-lg transition-colors group"
               >
-                {/* Position badge - smaller on mobile */}
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm flex-shrink-0">
+                {/* Position badge */}
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-linear-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm shrink-0">
                   {player.position}
                 </div>
 
-                {/* Player info - truncate properly */}
+                {/* Player info */}
                 <div className="flex-1 min-w-0 space-y-0.5">
                   <div className="font-medium text-sm truncate">
                     {player.name}
@@ -72,9 +72,9 @@ export function TeamLineupCard({
                   </div>
                 </div>
 
-                {/* Points - right-aligned, smaller font */}
+                {/* Points */}
                 <div
-                  className={`ml-auto text-sm font-medium px-2 py-px rounded-full text-xs sm:text-sm whitespace-nowrap flex-shrink-0 ${
+                  className={`ml-auto font-medium px-2 py-px rounded-full text-xs sm:text-sm whitespace-nowrap shrink-0 ${
                     player.points > 0
                       ? "bg-green-100 text-green-800"
                       : "bg-gray-100 text-gray-800"
@@ -93,7 +93,7 @@ export function TeamLineupCard({
             <h4 className="font-medium mb-2 text-sm text-muted-foreground">
               Captain
             </h4>
-            <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl">
+            <div className="flex items-center gap-3 p-4 bg-linear-to-r from-purple-500 to-purple-600 text-white rounded-xl">
               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center font-bold text-lg">
                 FWD
               </div>
@@ -107,7 +107,7 @@ export function TeamLineupCard({
             <h4 className="font-medium mb-2 text-sm text-muted-foreground">
               Vice-Captain
             </h4>
-            <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl">
+            <div className="flex items-center gap-3 p-4 bg-linear-to-r from-indigo-500 to-indigo-600 text-white rounded-xl">
               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center font-bold text-lg">
                 MID
               </div>
@@ -133,7 +133,7 @@ export function TeamLineupCard({
                 key={player.name}
                 className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg"
               >
-                <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                <div className="w-10 h-10 bg-linear-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
                   {player.position}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -142,7 +142,7 @@ export function TeamLineupCard({
                     {player.team}
                   </div>
                 </div>
-                <div className="text-sm font-medium text-gray-500 text-xs">
+                <div className="text-sm font-medium text-gray-500">
                   {player.points} pts
                 </div>
               </div>

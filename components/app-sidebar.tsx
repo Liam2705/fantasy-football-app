@@ -3,15 +3,12 @@
 import * as React from "react"
 import {
   Command,
-  Frame,
   LifeBuoy,
-  Map,
-  PieChart,
   Settings,
   Settings2,
-  SquareTerminal,
   Trophy,
   Users,
+  LayoutDashboard
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -33,7 +30,7 @@ const data = {
     {
       title: "Dashboard",
       url: "/dashboard",
-      icon: SquareTerminal,
+      icon: LayoutDashboard,
       isActive: true,
     },
     {
@@ -86,23 +83,6 @@ const data = {
       title: "Settings",
       url: "#",
       icon: Settings,
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
     },
   ],
 }

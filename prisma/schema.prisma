@@ -78,11 +78,12 @@ model LeagueMember {
 }
 
 model Player {
-  id String @id
+  id    String @id @default(cuid())
+  fplId Int?   @unique
 
   firstName String
   lastName  String
-  fullName  String
+  web_name  String
 
   // Team
   team            String // "Manchester United"
@@ -92,12 +93,13 @@ model Player {
   element_type Int // 1=GK, 2=DEF, 3=MID, 4=FWD
   position     Position @default(FWD)
 
-  total_points Int @default(0)
-  minutes      Int @default(0)
-  goals_scored Int @default(0)
-  assists      Int @default(0)
-  yellow_cards Int @default(0)
-  red_cards    Int @default(0)
+  total_points Int  @default(0)
+  minutes      Int  @default(0)
+  goals_scored Int  @default(0)
+  assists      Int  @default(0)
+  yellow_cards Int  @default(0)
+  red_cards    Int  @default(0)
+  clean_sheets Int  @default(0)
 
   //Status
   status String @default("a") // a=Available, i=Injured
