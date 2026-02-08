@@ -106,7 +106,7 @@ export function SelectedSquad({ picks, userId, leagueId }: SelectedSquadProps) {
                 </Badge>
                 <div className="min-w-0 flex-1">
                   <div className="font-medium text-xs sm:text-sm truncate">
-                    {pick.player.fullName}
+                    {pick.player.web_name}
                   </div>
                   <div className="text-xs text-muted-foreground truncate">
                     {pick.player.team}

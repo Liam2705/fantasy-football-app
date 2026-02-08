@@ -184,7 +184,7 @@ export function CaptainSelection({
               <Star className="h-4 w-4 text-yellow-500 flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium truncate">
-                  {captain.player.fullName}
+                  {captain.player.web_name}
                 </div>
                 <div className="text-xs text-muted-foreground">
                   {captain.player.position}
@@ -212,7 +212,7 @@ export function CaptainSelection({
               <Shield className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium truncate">
-                  {viceCaptain.player.fullName}
+                  {viceCaptain.player.web_name}
                 </div>
                 <div className="text-xs text-muted-foreground">
                   {viceCaptain.player.position}
@@ -272,7 +272,7 @@ export function BenchPlayers({
                 </Badge>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium truncate">
-                    {pick.player.fullName}
+                    {pick.player.web_name}
                   </div>
                   <div className="text-xs text-muted-foreground truncate">
                     {pick.player.team_short_name}

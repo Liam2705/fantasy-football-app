@@ -38,7 +38,7 @@ export function PlayerList({ players, currentPicks, leagueId }: PlayerListProps)
   const limits = { GK: 2, DEF: 5, MID: 5, FWD: 3 }
 
   const filteredPlayers = players.filter(player => {
-    const matchesSearch = player.fullName.toLowerCase().includes(search.toLowerCase())
+    const matchesSearch = player.web_name.toLowerCase().includes(search.toLowerCase())
     const matchesPosition = position === "ALL" || player.position === position
     const notPicked = !optimisticPicks.find(p => p.playerId === player.id)
     return matchesSearch && matchesPosition && notPicked
@@ -142,7 +142,7 @@ export function PlayerList({ players, currentPicks, leagueId }: PlayerListProps)
                       {player.position}
                     </Badge>
                     <div className="font-medium text-sm sm:text-base truncate">
-                      {player.fullName}
+                      {player.web_name}
                     </div>
                   </div>
                   <div className="text-xs sm:text-sm text-muted-foreground">
