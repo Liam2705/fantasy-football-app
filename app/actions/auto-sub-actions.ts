@@ -3,15 +3,12 @@
 import prisma from "@/lib/db"
 import { revalidatePath } from "next/cache"
 
-const VALID_FORMATIONS = [
-    { def: 3, mid: 4, fwd: 3 },
-    { def: 3, mid: 5, fwd: 2 },
-    { def: 4, mid: 3, fwd: 3 },
-    { def: 4, mid: 4, fwd: 2 },
-    { def: 4, mid: 5, fwd: 1 },
-    { def: 5, mid: 3, fwd: 2 },
-    { def: 5, mid: 4, fwd: 1 },
-]
+const POSITION_CONSTRAINTS = {
+    GK: { min: 1, max: 1 },
+    DEF: { min: 3, max: 5 },
+    MID: { min: 3, max: 5 },
+    FWD: { min: 1, max: 3 }
+}
 
 interface SubstitutionLog {
     starterOut: string
@@ -70,7 +67,7 @@ export async function processAutoSubs(
                     const subData = substitute.player.gameweekStats[0]
                     const subPoints = subData?.points ?? substitute.player.total_points
 
-                   
+
 
                     // Perform the swap
                     starters[i] = substitute
@@ -78,8 +75,8 @@ export async function processAutoSubs(
                     bench.push(starter)
 
                     substitutions.push({
-                        starterOut: `${starter.player.fullName} (${starterPoints} pts)`,
-                        benchIn: `${substitute.player.fullName} (${subPoints} pts)`,
+                        starterOut: `${starter.player.web_name} (${starterPoints} pts)`,
+                        benchIn: `${substitute.player.web_name} (${subPoints} pts)`,
                         reason: 'Did not play'
                     })
                 }
@@ -107,7 +104,7 @@ export async function processAutoSubs(
                 )
             ])
 
-            
+
         }
         revalidatePath('/my-team')
 
@@ -182,15 +179,14 @@ function isValidFormation(starters: any[]) {
         FWD: starters.filter(p => p.player.position === 'FWD').length,
     }
 
-    // Must have exactly 1 GK and 11 total players
-    if (counts.GK !== 1 || starters.length !== 11) {
-        return false
+    if (starters.length !== 11) return false
+
+    for (const [position, constraint] of Object.entries(POSITION_CONSTRAINTS)) {
+        const count = counts[position as keyof typeof counts]
+        if (count < constraint.min || count > constraint.max) {
+            return false
+        }
     }
 
-    // Check if DEF-MID-FWD matches any valid formation
-    return VALID_FORMATIONS.some(f =>
-        f.def === counts.DEF &&
-        f.mid === counts.MID &&
-        f.fwd === counts.FWD
-    )
+    return true
 }

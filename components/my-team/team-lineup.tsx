@@ -67,7 +67,7 @@ export function TeamLineup({
           >
             <div className="text-center">
               <div className="text-xs font-bold truncate px-1">
-                {pick.player.lastName}
+                {pick.player.web_name}
               </div>
               <div className="text-[10px] opacity-90 truncate">
                 {pick.player.team_short_name}

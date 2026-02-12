@@ -16,16 +16,35 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { calculateGameweekPoints } from "@/app/actions/gameweek-actions";
 
-// Valid formations (DEF-MID-FWD, GK is always 1)
-const VALID_FORMATIONS = [
-  { def: 3, mid: 4, fwd: 3, name: "3-4-3" },
-  { def: 3, mid: 5, fwd: 2, name: "3-5-2" },
-  { def: 4, mid: 3, fwd: 3, name: "4-3-3" },
-  { def: 4, mid: 4, fwd: 2, name: "4-4-2" },
-  { def: 4, mid: 5, fwd: 1, name: "4-5-1" },
-  { def: 5, mid: 3, fwd: 2, name: "5-3-2" },
-  { def: 5, mid: 4, fwd: 1, name: "5-4-1" },
-];
+// Position Contraints - min and max number allowed in play per position
+const POSITION_CONSTRAINTS = {
+  GK: { min: 1, max: 1 },
+  DEF: { min: 3, max: 5 },
+  MID: { min: 3, max: 5 },
+  FWD: { min: 1, max: 3 }
+}
+
+function isValidLineup(starters: any[]) {
+  const counts = {
+    GK: starters.filter(p => p.player.position === 'GK').length,
+    DEF: starters.filter(p => p.player.position === 'DEF').length,
+    MID: starters.filter(p => p.player.position === 'MID').length,
+    FWD: starters.filter(p => p.player.position === 'FWD').length,
+  }
+
+  // Must have exactly 11 players
+  if (starters.length !== 11) return false
+
+  // Check each position against constraints
+  for (const [position, constraint] of Object.entries(POSITION_CONSTRAINTS)) {
+    const count = counts[position as keyof typeof counts]
+    if (count < constraint.min || count > constraint.max) {
+      return false
+    }
+  }
+
+  return true
+}
 
 async function assignFormation(picks: any[], userId: string, leagueId: string) {
   // Count available players by position
@@ -37,102 +56,64 @@ async function assignFormation(picks: any[], userId: string, leagueId: string) {
   };
 
   // Must have at least 1 GK
-  if (available.GK.length === 0) {
-    return null;
-  }
+  if (available.GK.length === 0) return null
 
-  const hasValidLineup = picks.every((p, idx) => {
-    // Check if all picks have sequential lineup slots
-    const expectedSlots = picks.map((_, i) => i + 1).sort((a, b) => a - b);
-    const actualSlots = picks.map((p) => p.lineupSlot).sort((a, b) => a - b);
-    return JSON.stringify(expectedSlots) === JSON.stringify(actualSlots);
-  });
+  // Check if lineup is already assigned and valid
+  const hasLineupSlots = picks.every(p => p.lineupSlot != null)
 
-  if (hasValidLineup) {
-    // Just return current state based on lineup slots
-    const starters = picks
-      .filter((p) => p.lineupSlot <= 11)
-      .sort((a, b) => a.lineupSlot - b.lineupSlot);
-    const bench = picks
-      .filter((p) => p.lineupSlot > 11)
-      .sort((a, b) => a.lineupSlot - b.lineupSlot);
+  if (hasLineupSlots) {
+    const starters = picks.filter(p => p.lineupSlot <= 11).sort((a, b) => a.lineupSlot - b.lineupSlot)
+    const bench = picks.filter(p => p.lineupSlot > 11).sort((a, b) => a.lineupSlot - b.lineupSlot)
 
-    // Calculate formation from current starters
-    const starterPositions = {
-      DEF: starters.filter((p) => p.player.position === "DEF").length,
-      MID: starters.filter((p) => p.player.position === "MID").length,
-      FWD: starters.filter((p) => p.player.position === "FWD").length,
-    };
-    const formationName = `${starterPositions.DEF}-${starterPositions.MID}-${starterPositions.FWD}`;
-
-    return {
-      starters,
-      bench,
-      formation: formationName,
-    };
-  }
-
-  // Find a valid formation that fits available players
-  for (const formation of VALID_FORMATIONS) {
-    if (
-      available.DEF.length >= formation.def &&
-      available.MID.length >= formation.mid &&
-      available.FWD.length >= formation.fwd
-    ) {
-      // Build starting 11
-      const starters = [
-        ...available.GK.slice(0, 1), // Always 1 GK
-        ...available.DEF.slice(0, formation.def),
-        ...available.MID.slice(0, formation.mid),
-        ...available.FWD.slice(0, formation.fwd),
-      ];
-
-      // Remaining players go to bench
-      const starterIds = new Set(starters.map((s) => s.id));
-      const bench = picks.filter((p) => !starterIds.has(p.id));
-
-      // Sort by position order (GK=1, DEF=2, MID=3, FWD=4)
-      const positionOrder = { GK: 1, DEF: 2, MID: 3, FWD: 4 };
-      const sortedStarters = [...starters].sort((a, b) => {
-        const aOrder =
-          positionOrder[a.player.position as keyof typeof positionOrder];
-        const bOrder =
-          positionOrder[b.player.position as keyof typeof positionOrder];
-        return aOrder - bOrder;
-      });
-
-      // Updates the lineup slots to match UI
-      await prisma.$transaction([
-        // Update starters (lineup slots 1-11)
-        ...starters.map((pick, index) =>
-          prisma.draftPick.update({
-            where: { id: pick.id },
-            data: { lineupSlot: index + 1 },
-          })
-        ),
-        // Update bench (lineup slots 12-15)
-        ...bench.map((pick, index) =>
-          prisma.draftPick.update({
-            where: { id: pick.id },
-            data: { lineupSlot: 12 + index },
-          })
-        ),
-      ]);
+    if (isValidLineup(starters)) {
+      const counts = {
+        DEF: starters.filter(p => p.player.position === 'DEF').length,
+        MID: starters.filter(p => p.player.position === 'MID').length,
+        FWD: starters.filter(p => p.player.position === 'FWD').length,
+      }
 
       return {
         starters,
         bench,
-        formation: formation.name,
-      };
+        formation: `${counts.DEF}-${counts.MID}-${counts.FWD}`
+      }
     }
   }
 
-  // Put first 11 as starters if no formation fits
+  // Auto-assign initial lineup (4-4-2 as default)
+  const starters = [
+    ...available.GK.slice(0, 1),
+    ...available.DEF.slice(0, 4),  // 4 defenders
+    ...available.MID.slice(0, 4),  // 4 midfielders
+    ...available.FWD.slice(0, 2),  // 2 forwards
+  ]
+
+  const starterIds = new Set(starters.map((s) => s.id));
+  const bench = picks.filter((p) => !starterIds.has(p.id));
+
+  // Save to database
+  await prisma.$transaction([
+    // Update starters (lineup slots 1-11)
+    ...starters.map((pick, index) =>
+      prisma.draftPick.update({
+        where: { id: pick.id },
+        data: { lineupSlot: index + 1 },
+      })
+    ),
+    // Update bench (lineup slots 12-15)
+    ...bench.map((pick, index) =>
+      prisma.draftPick.update({
+        where: { id: pick.id },
+        data: { lineupSlot: 12 + index },
+      })
+    ),
+  ]);
+
   return {
-    starters: picks.slice(0, 11),
-    bench: picks.slice(11, 15),
-    formation: "Custom",
-  };
+    starters,
+    bench,
+    formation: '4-4-2'
+  }
 }
 
 export default async function MyTeamPage() {
