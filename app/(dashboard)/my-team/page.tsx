@@ -188,7 +188,8 @@ export default async function MyTeamPage() {
   // Calculate gameweek points WITH captain multiplier
   const gwPointsResult = await calculateGameweekPoints(
     userLeague.id,
-    userLeague.currentGameweek
+    userLeague.currentGameweek,
+    user.id
   );
 
   const gameweekPoints = gwPointsResult.points;

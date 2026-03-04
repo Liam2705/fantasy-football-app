@@ -54,9 +54,6 @@ export async function processAutoSubs(
             // If no gameweek data, assume they played
             const minutes = gameweekData?.minutes ?? 90
 
-            // testing
-            //const minutes = gameweekData?.minutes ?? (Math.random() > 0.7 ? 0 : 90)
-
             if (minutes === 0) {
                 const starterPoints = gameweekData?.points ?? 0
 
