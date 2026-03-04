@@ -2,16 +2,7 @@ import { GameweekPointsCard } from "@/components/dashboard/gameweek-points-card"
 import { OverallRankCard } from "@/components/dashboard/overall-rank-card";
 import { TeamLineupCard } from "@/components/dashboard/team-lineup-card";
 import { TransfersCard } from "@/components/dashboard/transfers-card";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-} from "@/components/ui/breadcrumb";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Badge } from "lucide-react";
 
 export default async function Page() {
   return (

@@ -10,9 +10,6 @@ interface MemberResult {
 }
 
 export async function finaliseGameweek(leagueId: string, gameweek: number) {
-    console.log(`finaliseGameweek called with leagueId: "${leagueId}", gameweek: ${gameweek}`)
-    console.log(`leagueId type: ${typeof leagueId}, length: ${leagueId.length}`)
-
     // Lock the league
     await prisma.league.update({
         where: { id: leagueId },
@@ -25,8 +22,6 @@ export async function finaliseGameweek(leagueId: string, gameweek: number) {
             where: { leagueId }
         })
 
-        console.log(`Found ${members.length} members`)
-
         // Process each member
         const results: MemberResult[] = []
 
@@ -35,13 +30,11 @@ export async function finaliseGameweek(leagueId: string, gameweek: number) {
             Run autosubs first so the points are calculated on
             an updated lineup 
             */
-            console.log(`Processing member: ${member.userId}`)
             const autoSubsResult = await processAutoSubs(
                 member.userId,
                 leagueId,
                 gameweek
             )
-            console.log(`Auto subs result:`, JSON.stringify(autoSubsResult))
 
             // Then calculate gameweek points
             const gameweekPointsResult = await calculateGameweekPointsForUser(
@@ -51,7 +44,6 @@ export async function finaliseGameweek(leagueId: string, gameweek: number) {
                 
 
             )
-            console.log(`Points result:`, JSON.stringify(gameweekPointsResult))
 
             // Push to the results array
             results.push({
@@ -61,9 +53,6 @@ export async function finaliseGameweek(leagueId: string, gameweek: number) {
             })
         }
 
-            console.log(`Results array:`, JSON.stringify(results))
-            console.log(`Processed points for ${results.length} members`)
-
             // Sort by points descending and assign gameweek ranks
             const ranked = results
                 .sort((a, b) => b.points - a.points)
@@ -71,8 +60,6 @@ export async function finaliseGameweek(leagueId: string, gameweek: number) {
                     ...result,
                     rank: index + 1
                 }))
-
-            console.log(`Ranked array:`, JSON.stringify(ranked))
 
             // Upsert all UserGameweek records in a single transaction
             await prisma.$transaction(

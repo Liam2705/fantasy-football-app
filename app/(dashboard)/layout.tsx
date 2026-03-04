@@ -25,33 +25,41 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const sidebarUser: SidebarUser =
     clerkUser && dbUser
       ? {
-          name:
-            dbUser.firstName || dbUser.lastName
-              ? `${dbUser.firstName ?? ""} ${dbUser.lastName ?? ""}`.trim()
-              : (dbUser.username ??
-                clerkUser.fullName ??
-                clerkUser.emailAddresses[0]?.emailAddress ??
-                "User"),
-          email: dbUser.email,
-          avatar: clerkUser.imageUrl,
-        }
+        name:
+          dbUser.firstName || dbUser.lastName
+            ? `${dbUser.firstName ?? ""} ${dbUser.lastName ?? ""}`.trim()
+            : (dbUser.username ??
+              clerkUser.fullName ??
+              clerkUser.emailAddresses[0]?.emailAddress ??
+              "User"),
+        email: dbUser.email,
+        avatar: clerkUser.imageUrl,
+      }
       : {
-          name: "Guest",
-          email: "",
-          avatar: "",
-        };
+        name: "Guest",
+        email: "",
+        avatar: "",
+      };
+
+  const membership = await prisma.leagueMember.findFirst({
+    where: { userId: dbUser?.id },
+    select: { leagueId: true },
+  })
 
   return (
     <SidebarProvider>
-      <AppSidebar user={sidebarUser} />
+      <AppSidebar
+        user={sidebarUser}
+        leagueId={membership?.leagueId ?? null}
+      />
       <SidebarInset>
         {" "}
         <header className="flex h-16 shrink-0 items-center gap-2 px-4 border-b">
           <SidebarTrigger />
           <Separator
-              orientation="vertical"
-              className="mr-2 data-[orientation=vertical]:h-4"
-            /> 
+            orientation="vertical"
+            className="mr-2 data-[orientation=vertical]:h-4"
+          />
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>

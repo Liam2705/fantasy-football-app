@@ -8,7 +8,8 @@ import {
   Settings2,
   Trophy,
   Users,
-  LayoutDashboard
+  LayoutDashboard,
+  List
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -25,78 +26,90 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
-const data = {
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: LayoutDashboard,
-      isActive: true,
-    },
-    {
-      title: "My Team",
-      url: "/my-team",
-      icon: Users,
-    },
-    {
-      title: "Leagues",
-      url: "/leagues",
-      icon: Trophy,
-      items: [
-        {
-          title: "My Leagues",
-          url: "/leagues", 
-        },
-        {
-          title: "Create a League",
-          url: "/leagues/create", 
-        },
-        {
-          title: "Join a League",
-          url: "/leagues/join",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "Profile",
-          url: "#",
-        },
-        {
-          title: "Team Name",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Support",
-      url: "#",
-      icon: LifeBuoy,
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings,
-    },
-  ],
-}
+function buildNavData(leagueId: string | null) {
 
+  return {
+    navMain: [
+      {
+        title: "Dashboard",
+        url: "/dashboard",
+        icon: LayoutDashboard,
+        isActive: true,
+      },
+      {
+        title: "My Team",
+        url: "/my-team",
+        icon: Users,
+      },
+      {
+        title: "Standings",
+        url: leagueId ? `/leagues/${leagueId}/standings` : '/leagues',
+        icon: List,
+      },
+      {
+        title: "Leagues",
+        url: "/leagues",
+        icon: Trophy,
+        items: [
+          {
+            title: "My Leagues",
+            url: "/leagues",
+          },
+          {
+            title: "Create a League",
+            url: "/leagues/create",
+          },
+          {
+            title: "Join a League",
+            url: "/leagues/join",
+          },
+        ],
+      },
+      {
+        title: "Settings",
+        url: "#",
+        icon: Settings2,
+        items: [
+          {
+            title: "Profile",
+            url: "#",
+          },
+          {
+            title: "Team Name",
+            url: "#",
+          },
+        ],
+      },
+    ],
+    navSecondary: [
+      {
+        title: "Support",
+        url: "#",
+        icon: LifeBuoy,
+      },
+      {
+        title: "Settings",
+        url: "#",
+        icon: Settings,
+      },
+    ],
+  }
+}
 export type SidebarUser = {
   name: string
   email: string
   avatar?: string
 }
 
-export function AppSidebar({ user, ...props }: React.ComponentProps<typeof Sidebar> & { user: SidebarUser })  {
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  user: SidebarUser
+  leagueId: string | null
+}
 
+
+export function AppSidebar({ user, leagueId, ...props }: AppSidebarProps) {
+  const data = buildNavData(leagueId)
   const isMobile = useSidebar();
-
   return (
     <Sidebar variant="floating" {...props}>
       <SidebarHeader>
