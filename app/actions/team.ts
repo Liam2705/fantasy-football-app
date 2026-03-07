@@ -11,6 +11,15 @@ export async function setCaptain(pickId: string, leagueId: string) {
       return { success: false, error: "Unauthorized" }
     }
 
+    const league = await prisma.league.findUnique({
+      where: { id: leagueId },
+      select: { isGameweekLocked: true },
+    })
+
+    if (league?.isGameweekLocked) {
+      return { success: false, error: 'Gameweek is locked — changes are not permitted' }
+    }
+
     // Verify this pick belongs to the user and is in the league
     const pick = await prisma.draftPick.findUnique({
       where: { id: pickId }
@@ -56,6 +65,15 @@ export async function setViceCaptain(pickId: string, leagueId: string) {
     const user = await getOrCreateUser()
     if (!user) {
       return { success: false, error: "Unauthorized" }
+    }
+
+    const league = await prisma.league.findUnique({
+      where: { id: leagueId },
+      select: { isGameweekLocked: true },
+    })
+
+    if (league?.isGameweekLocked) {
+      return { success: false, error: 'Gameweek is locked — changes are not permitted' }
     }
 
     // Verify this pick belongs to the user and is in the league
@@ -106,19 +124,28 @@ export async function setViceCaptain(pickId: string, leagueId: string) {
 
 export async function swapPlayers(pickId1: string, pickId2: string, leagueId: string) {
   try {
-    
+
     const user = await getOrCreateUser()
     if (!user) {
       return { success: false, error: "Unauthorized" }
     }
 
+    const league = await prisma.league.findUnique({
+      where: { id: leagueId },
+      select: { isGameweekLocked: true },
+    })
+
+    if (league?.isGameweekLocked) {
+      return { success: false, error: 'Gameweek is locked — changes are not permitted' }
+    }
+
     // Get both picks
     const [pick1, pick2] = await Promise.all([
-      prisma.draftPick.findUnique({ 
+      prisma.draftPick.findUnique({
         where: { id: pickId1 },
         include: { player: true }
       }),
-      prisma.draftPick.findUnique({ 
+      prisma.draftPick.findUnique({
         where: { id: pickId2 },
         include: { player: true }
       })
@@ -137,14 +164,14 @@ export async function swapPlayers(pickId1: string, pickId2: string, leagueId: st
     }
 
     // Check if swap would break formation (one must be starter, one must be bench)
-    const isValidSwap = 
+    const isValidSwap =
       (pick1.lineupSlot <= 11 && pick2.lineupSlot > 11) ||
       (pick1.lineupSlot > 11 && pick2.lineupSlot <= 11)
 
     if (!isValidSwap) {
-      return { 
-        success: false, 
-        error: "Can only swap between starters and substitutes" 
+      return {
+        success: false,
+        error: "Can only swap between starters and substitutes"
       }
     }
 
@@ -173,9 +200,9 @@ export async function swapPlayers(pickId1: string, pickId2: string, leagueId: st
 
     // Must have exactly 1 GK
     if (positionCounts.GK !== 1) {
-      return { 
-        success: false, 
-        error: "Must have exactly 1 goalkeeper in starting lineup" 
+      return {
+        success: false,
+        error: "Must have exactly 1 goalkeeper in starting lineup"
       }
     }
 
@@ -190,16 +217,16 @@ export async function swapPlayers(pickId1: string, pickId2: string, leagueId: st
       { def: 5, mid: 4, fwd: 1 },
     ]
 
-    const isValidFormation = VALID_FORMATIONS.some(f => 
+    const isValidFormation = VALID_FORMATIONS.some(f =>
       f.def === positionCounts.DEF &&
       f.mid === positionCounts.MID &&
       f.fwd === positionCounts.FWD
     )
 
     if (!isValidFormation) {
-      return { 
-        success: false, 
-        error: `Invalid formation: ${positionCounts.DEF}-${positionCounts.MID}-${positionCounts.FWD} is not allowed` 
+      return {
+        success: false,
+        error: `Invalid formation: ${positionCounts.DEF}-${positionCounts.MID}-${positionCounts.FWD} is not allowed`
       }
     }
 

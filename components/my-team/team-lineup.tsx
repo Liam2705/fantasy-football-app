@@ -28,7 +28,7 @@ export function TeamLineup({
 }: TeamLineupProps) {
 
 
-  
+
 
   // Group starters by position
   const lineup = {
@@ -57,7 +57,7 @@ export function TeamLineup({
     const isCaptain = pick.id === captain?.id;
     const isViceCaptain = pick.id === viceCaptain?.id;
     const displayPoints = playerPoints?.get(pick.id) ?? pick.player.total_points;
-  
+
 
     return (
       <div className="flex flex-col items-center gap-1">
@@ -176,61 +176,53 @@ export function CaptainSelection({
       </CardHeader>
       <CardContent className="space-y-3 pb-4">
         <div className="space-y-2">
-          <div className="text-xs text-muted-foreground">
-            Captain (2x points)
+          <div className="text-xs text-muted-foreground">Captain (2x points)</div>
+          <div className="flex items-center gap-2 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+            <Star className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              {captain ? (
+                <>
+                  <div className="text-sm font-medium truncate">{captain.player.web_name}</div>
+                  <div className="text-xs text-muted-foreground">{captain.player.position}</div>
+                </>
+              ) : (
+                <div className="text-sm text-muted-foreground">No captain selected</div>
+              )}
+            </div>
+            <CaptainDialog
+              starters={starters}
+              currentCaptain={captain}
+              currentViceCaptain={viceCaptain}
+              type="captain"
+              leagueId={leagueId}
+            />
           </div>
-          {captain ? (
-            <div className="flex items-center gap-2 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-              <Star className="h-4 w-4 text-yellow-500 flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium truncate">
-                  {captain.player.web_name}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {captain.player.position}
-                </div>
-              </div>
-              <CaptainDialog
-                starters={starters}
-                currentCaptain={captain}
-                currentViceCaptain={viceCaptain}
-                type="captain"
-                leagueId={leagueId}
-              />
-            </div>
-          ) : (
-            <div className="text-sm text-muted-foreground p-3 border border-dashed rounded-lg text-center">
-              No captain selected
-            </div>
-          )}
         </div>
+
 
         <div className="space-y-2">
           <div className="text-xs text-muted-foreground">Vice-Captain</div>
-          {viceCaptain ? (
-            <div className="flex items-center gap-2 p-2 bg-muted/50 border rounded-lg">
-              <Shield className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium truncate">
-                  {viceCaptain.player.web_name}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {viceCaptain.player.position}
-                </div>
-              </div>
-              <CaptainDialog
-                starters={starters}
-                currentCaptain={captain}
-                currentViceCaptain={viceCaptain}
-                type="vice-captain"
-                leagueId={leagueId}
-              />
+          <div className="flex items-center gap-2 p-2 bg-muted/50 border rounded-lg">
+            <Shield className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              {viceCaptain ? (
+                <>
+                  <div className="text-sm font-medium truncate">{viceCaptain.player.web_name}</div>
+                  <div className="text-xs text-muted-foreground">{viceCaptain.player.position}</div>
+                </>
+              ) : (
+                <div className="text-sm text-muted-foreground">No vice-captain selected</div>
+              )}
             </div>
-          ) : (
-            <div className="text-sm text-muted-foreground p-3 border border-dashed rounded-lg text-center">
-              No vice-captain selected
-            </div>
-          )}
+            {/* ✅ Always show the button */}
+            <CaptainDialog
+              starters={starters}
+              currentCaptain={captain}
+              currentViceCaptain={viceCaptain}
+              type="vice-captain"
+              leagueId={leagueId}
+            />
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -243,26 +235,28 @@ export function BenchPlayers({
   starters,
   leagueId,
   playerPoints,
+  isLocked
 }: {
   bench: (DraftPick & { player: Player })[];
   starters: (DraftPick & { player: Player })[];
   leagueId: string;
   playerPoints?: Map<string, number>;
+  isLocked: boolean
 }) {
   const [swapPlayerId, setSwapPlayerId] = useState<string | null>(null);
 
   const selectedPlayer = bench.find((p) => p.id === swapPlayerId);
 
   const POSITION_ORDER: Record<string, number> = {
-  GK: 0,
-  DEF: 1,
-  MID: 2,
-  FWD: 3,
-}
+    GK: 0,
+    DEF: 1,
+    MID: 2,
+    FWD: 3,
+  }
 
-const sortedBench = [...bench].sort(
-  (a, b) => POSITION_ORDER[a.player.position] - POSITION_ORDER[b.player.position]
-)
+  const sortedBench = [...bench].sort(
+    (a, b) => POSITION_ORDER[a.player.position] - POSITION_ORDER[b.player.position]
+  )
 
   return (
     <>
@@ -294,14 +288,16 @@ const sortedBench = [...bench].sort(
                 <div className="text-sm font-bold flex-shrink-0">
                   {playerPoints?.get(pick.id) ?? 0}
                 </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7 flex-shrink-0"
-                  onClick={() => setSwapPlayerId(pick.id)}
-                >
-                  <ArrowDownUp className="h-4 w-4" />
-                </Button>
+                {!isLocked && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 flex-shrink-0"
+                    onClick={() => setSwapPlayerId(pick.id)}
+                  >
+                    <ArrowDownUp className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             ))}
 

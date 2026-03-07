@@ -232,6 +232,8 @@ export async function confirmDraft(leagueId: string) {
             data: { draftComplete: true }
         })
 
+        await autoAssignCaptain(user.id, leagueId)
+
         revalidatePath(`/leagues/${leagueId}`)
         revalidatePath(`/leagues/${leagueId}/draft`)
 
@@ -245,4 +247,43 @@ export async function confirmDraft(leagueId: string) {
         }
 
     }
+}
+
+export async function autoAssignCaptain(userId: string, leagueId: string) {
+  // Get all starters ordered by total points descending
+  const starters = await prisma.draftPick.findMany({
+    where: {
+      userId,
+      leagueId,
+      lineupSlot: { lte: 11 },
+    },
+    include: {
+      player: { select: { total_points: true } },
+    },
+    orderBy: {
+      player: { total_points: 'desc' },
+    },
+  })
+
+  if (starters.length < 2) return
+
+  const [captain, viceCaptain] = starters
+
+  await prisma.$transaction([
+    // Clear any existing captain/vc flags first
+    prisma.draftPick.updateMany({
+      where: { userId, leagueId },
+      data: { isCaptain: false, isViceCaptain: false },
+    }),
+    // Set captain
+    prisma.draftPick.update({
+      where: { id: captain.id },
+      data: { isCaptain: true },
+    }),
+    // Set vice captain
+    prisma.draftPick.update({
+      where: { id: viceCaptain.id },
+      data: { isViceCaptain: true },
+    }),
+  ])
 }

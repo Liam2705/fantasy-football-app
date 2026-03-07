@@ -310,6 +310,7 @@ export default async function MyTeamPage() {
             starters={starters}
             leagueId={userLeague.id}
             playerPoints={playerPointsMap}
+            isLocked={userLeague.isGameweekLocked}
           />
 
           <CaptainSelection

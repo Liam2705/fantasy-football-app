@@ -59,9 +59,9 @@ export function SelectedSquad({ picks, userId, leagueId }: SelectedSquadProps) {
       const result = await confirmDraft(leagueId)
       
       if (result.success) {
-        toast.success("Draft complete! Redirecting to league...")
+        toast.success("Draft complete! Redirecting to team...")
         setTimeout(() => {
-          router.push(`/leagues/${leagueId}`)
+          router.push(`/my-team`)
         }, 1500)
       } else {
         toast.error(result.error || "Failed to confirm draft")

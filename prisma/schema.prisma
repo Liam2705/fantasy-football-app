@@ -190,3 +190,13 @@ model UserGameweek {
   @@index([leagueId, gameweek])
   @@index([userId, leagueId])
 }
+
+model Gameweek {
+  id           Int      @id // FPL gameweek number (1-38)
+  deadlineTime DateTime
+  finished     Boolean  @default(false)
+  isCurrent    Boolean  @default(false)
+  isNext       Boolean  @default(false)
+
+  @@map("gameweeks")
+}
