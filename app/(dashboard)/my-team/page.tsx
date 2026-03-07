@@ -195,9 +195,10 @@ export default async function MyTeamPage() {
   const gameweekPoints = gwPointsResult.points;
 
   const playerPointsMap = new Map<string, number>();
-  for (const pick of starters) {
+  const allPicks = [...starters, ...bench]
+  for (const pick of allPicks) {
     const gameweekData = pick.player.gameweekStats?.[0];
-    let points = gameweekData?.points ?? pick.player.total_points;
+    let points = gameweekData?.points ?? 0;
 
     // Double for captain
     if (pick.id === captain?.id) {
@@ -308,6 +309,7 @@ export default async function MyTeamPage() {
             bench={bench}
             starters={starters}
             leagueId={userLeague.id}
+            playerPoints={playerPointsMap}
           />
 
           <CaptainSelection

@@ -1,5 +1,4 @@
 import { processAutoSubs } from "@/app/actions/auto-sub-actions"
-import { calculateGameweekPoints } from "@/app/actions/gameweek-actions"
 import prisma from "@/lib/db"
 import { calculateGameweekPointsForUser } from "./scoring"
 
@@ -41,7 +40,7 @@ export async function finaliseGameweek(leagueId: string, gameweek: number) {
                 member.userId,
                 leagueId,
                 gameweek,
-                
+
 
             )
 
@@ -53,50 +52,69 @@ export async function finaliseGameweek(leagueId: string, gameweek: number) {
             })
         }
 
-            // Sort by points descending and assign gameweek ranks
-            const ranked = results
-                .sort((a, b) => b.points - a.points)
-                .map((result, index) => ({
-                    ...result,
-                    rank: index + 1
-                }))
+        // Sort by points descending and assign gameweek ranks
+        const ranked = results
+            .sort((a, b) => b.points - a.points)
+            .map((result, index) => ({
+                ...result,
+                rank: index + 1
+            }))
 
-            // Upsert all UserGameweek records in a single transaction
-            await prisma.$transaction(
-                ranked.map((result) =>
-                    prisma.userGameweek.upsert({
-                        where: {
-                            userId_leagueId_gameweek: {
-                                userId: result.userId,
-                                leagueId,
-                                gameweek
-                            }
-                        },
-                        create: {
+        // Upsert all UserGameweek records in a single transaction
+        await prisma.$transaction(
+            ranked.map((result) =>
+                prisma.userGameweek.upsert({
+                    where: {
+                        userId_leagueId_gameweek: {
                             userId: result.userId,
                             leagueId,
-                            gameweek,
-                            points: result.points,
-                            autosubs: result.autoSubs,
-                            rank: result.rank
-                        },
-                        update: {
-                            points: result.points,
-                            autosubs: result.autoSubs,
-                            rank: result.rank
+                            gameweek
                         }
-                    }))
-            )
+                    },
+                    create: {
+                        userId: result.userId,
+                        leagueId,
+                        gameweek,
+                        points: result.points,
+                        autosubs: result.autoSubs,
+                        rank: result.rank
+                    },
+                    update: {
+                        points: result.points,
+                        autosubs: result.autoSubs,
+                        rank: result.rank
+                    }
+                }))
+        )
 
-            await prisma.league.update({
-                where: { id: leagueId },
-                data: {
-                    isGameweekLocked: false,
-                    lastFinalised: gameweek
-                }
+        await prisma.league.update({
+            where: { id: leagueId },
+            data: {
+                isGameweekLocked: false,
+                lastFinalised: gameweek
+            }
+        })
+
+        // Recalculate totalPoints for each user in this league
+        for (const result of ranked) {
+            const allGameweeks = await prisma.userGameweek.findMany({
+                where: { userId: result.userId, leagueId },
+                select: { points: true },
             })
 
-            return { success: true, processed: ranked.length }
+            const totalPoints = allGameweeks.reduce((sum, gw) => sum + gw.points, 0)
+
+            await prisma.user.update({
+                where: { id: result.userId },
+                data: {
+                    totalPoints,
+                    currentRank: result.rank
+                    
+                 },
+            })
+        }
+
+        return { success: true, processed: ranked.length }
 
     } catch (error) {
         // Unlock the league if something fails

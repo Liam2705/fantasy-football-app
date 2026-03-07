@@ -242,14 +242,27 @@ export function BenchPlayers({
   bench,
   starters,
   leagueId,
+  playerPoints,
 }: {
   bench: (DraftPick & { player: Player })[];
   starters: (DraftPick & { player: Player })[];
   leagueId: string;
+  playerPoints?: Map<string, number>;
 }) {
   const [swapPlayerId, setSwapPlayerId] = useState<string | null>(null);
 
   const selectedPlayer = bench.find((p) => p.id === swapPlayerId);
+
+  const POSITION_ORDER: Record<string, number> = {
+  GK: 0,
+  DEF: 1,
+  MID: 2,
+  FWD: 3,
+}
+
+const sortedBench = [...bench].sort(
+  (a, b) => POSITION_ORDER[a.player.position] - POSITION_ORDER[b.player.position]
+)
 
   return (
     <>
@@ -259,7 +272,7 @@ export function BenchPlayers({
         </CardHeader>
         <CardContent className="pb-4">
           <div className="space-y-2 max-h-[300px] overflow-y-auto">
-            {bench.map((pick, index) => (
+            {sortedBench.map((pick, index) => (
               <div
                 key={pick.id}
                 className="flex items-center gap-2 p-2 border rounded-lg"
@@ -279,7 +292,7 @@ export function BenchPlayers({
                   </div>
                 </div>
                 <div className="text-sm font-bold flex-shrink-0">
-                  {pick.player.total_points}
+                  {playerPoints?.get(pick.id) ?? 0}
                 </div>
                 <Button
                   size="icon"

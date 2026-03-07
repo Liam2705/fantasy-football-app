@@ -71,7 +71,7 @@ model LeagueMember {
   id       String   @id @default(cuid())
   leagueId String
   league   League   @relation(fields: [leagueId], references: [id])
-  userId   String
+  userId   String   @unique
   user     User     @relation(fields: [userId], references: [id])
   joinedAt DateTime @default(now())
 

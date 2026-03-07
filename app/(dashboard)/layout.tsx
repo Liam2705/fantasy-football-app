@@ -41,7 +41,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         avatar: "",
       };
 
-  const membership = await prisma.leagueMember.findFirst({
+  const membership = await prisma.leagueMember.findUnique({
     where: { userId: dbUser?.id },
     select: { leagueId: true },
   })
