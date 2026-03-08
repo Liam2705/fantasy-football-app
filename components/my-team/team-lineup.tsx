@@ -8,6 +8,8 @@ import { ArrowDownUp, Shield, Star } from "lucide-react";
 import { CaptainDialog } from "./captain-dialog";
 import { useState } from "react";
 import { SwapDialog } from "./swap-dialog";
+import { getTeamColour } from "@/lib/team-colours";
+import { ShirtIcon } from "../shirt-icon";
 
 type TeamLineupProps = {
   starters: (DraftPick & { player: Player })[];
@@ -61,36 +63,37 @@ export function TeamLineup({
 
     return (
       <div className="flex flex-col items-center gap-1">
-        <div className="relative group">
-          <div
-            className={`${getPositionColor(pick.player.position)} text-white rounded-lg p-2 shadow-md w-16 sm:w-20 transition-all`}
-          >
-            <div className="text-center">
-              <div className="text-xs font-bold truncate px-1">
-                {pick.player.web_name}
-              </div>
-              <div className="text-[10px] opacity-90 truncate">
-                {pick.player.team_short_name}
-              </div>
-              <div className={`text-base sm:text-lg font-bold mt-0.5 ${isCaptain ? 'text-yellow-300' : ''}`}>
-                {displayPoints}
-              </div>
-            </div>
-          </div>
-
+        <div className="relative">
+          {/* Captain / VC badge */}
           {isCaptain && (
-            <div className="absolute -top-1 -right-1 bg-yellow-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shadow-lg border-2 border-white">
+            <div className="absolute -top-1 -right-1 z-10 bg-yellow-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shadow-lg border-2 border-white">
               C
             </div>
           )}
           {isViceCaptain && (
-            <div className="absolute -top-1 -right-1 bg-gray-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shadow-lg border-2 border-white">
+            <div className="absolute -top-1 -right-1 z-10 bg-gray-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shadow-lg border-2 border-white">
               V
             </div>
           )}
+
+          {/* Shirt */}
+          <ShirtIcon
+            color={getTeamColour(pick.player.team_short_name)}
+            className="w-10 h-10 sm:w-12 sm:h-12 drop-shadow-md"
+          />
+        </div>
+
+        {/* Player info pill */}
+        <div className="bg-black/60 rounded px-1.5 py-0.5 text-center min-w-15 max-w-18">
+          <div className="text-white text-[10px] font-semibold truncate leading-tight">
+            {pick.player.web_name}
+          </div>
+          <div className={`text-[10px] font-bold leading-tight ${isCaptain ? 'text-yellow-300' : 'text-white'}`}>
+            {displayPoints} pts
+          </div>
         </div>
       </div>
-    );
+    )
   };
 
   return (
@@ -193,14 +196,14 @@ export function CaptainSelection({
             </div>
             {!isLocked && (
               <CaptainDialog
-              starters={starters}
-              currentCaptain={captain}
-              currentViceCaptain={viceCaptain}
-              type="captain"
-              leagueId={leagueId}
-            />
+                starters={starters}
+                currentCaptain={captain}
+                currentViceCaptain={viceCaptain}
+                type="captain"
+                leagueId={leagueId}
+              />
             )}
-            
+
           </div>
         </div>
 
@@ -221,12 +224,12 @@ export function CaptainSelection({
             </div>
             {!isLocked && (
               <CaptainDialog
-              starters={starters}
-              currentCaptain={captain}
-              currentViceCaptain={viceCaptain}
-              type="captain"
-              leagueId={leagueId}
-            />
+                starters={starters}
+                currentCaptain={captain}
+                currentViceCaptain={viceCaptain}
+                type="captain"
+                leagueId={leagueId}
+              />
             )}
           </div>
         </div>
@@ -283,6 +286,10 @@ export function BenchPlayers({
                 <Badge variant="outline" className="flex-shrink-0 text-xs">
                   {pick.player.position}
                 </Badge>
+                <ShirtIcon
+                  color={getTeamColour(pick.player.team_short_name)}
+                  className="w-7 h-7 shrink-0"
+                />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium truncate">
                     {pick.player.web_name}

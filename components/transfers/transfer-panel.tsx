@@ -5,6 +5,8 @@ import { toast } from 'sonner'
 import { executeTransferAction } from '@/app/actions/transfer-actions'
 import { DraftPick, Player } from '@/app/generated/prisma/client'
 import { Position } from '@/app/generated/prisma/enums'
+import { getTeamColour } from '@/lib/team-colours'
+import { ShirtIcon } from '../shirt-icon'
 
 type DraftPickWithPlayer = DraftPick & { player: Player }
 
@@ -114,17 +116,22 @@ export default function TransferPanel({
                     return (
                       <div
                         key={pick.id}
-                        className={`flex items-center justify-between rounded-md border px-4 py-3 transition-colors ${
-                          isSelected
-                            ? 'border-red-500 bg-red-50'
-                            : 'border-border bg-card'
-                        }`}
+                        className={`flex items-center justify-between rounded-md border px-4 py-3 transition-colors ${isSelected
+                          ? 'border-red-500 bg-red-50'
+                          : 'border-border bg-card'
+                          }`}
                       >
-                        <div>
-                          <p className="font-medium text-sm">{pick.player.web_name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {pick.player.team_short_name} · {pick.player.total_points} pts
-                          </p>
+                        <div className="flex items-center gap-2">
+                          <ShirtIcon
+                            color={getTeamColour(pick.player.team_short_name)}
+                            className="w-7 h-7 shrink-0"
+                          />
+                          <div>
+                            <p className="font-medium text-sm">{pick.player.web_name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {pick.player.team_short_name} · {pick.player.total_points} pts
+                            </p>
+                          </div>
                         </div>
                         <div className="flex items-center gap-2">
                           {pick.isCaptain && (
@@ -140,11 +147,10 @@ export default function TransferPanel({
                           {!isGameweekLocked && (
                             <button
                               onClick={() => handleSelectOutgoing(pick)}
-                              className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${
-                                isSelected
-                                  ? 'bg-red-500 text-white hover:bg-red-600'
-                                  : 'bg-muted hover:bg-muted/80 text-foreground'
-                              }`}
+                              className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${isSelected
+                                ? 'bg-red-500 text-white hover:bg-red-600'
+                                : 'bg-muted hover:bg-muted/80 text-foreground'
+                                }`}
                             >
                               {isSelected ? 'Cancel' : 'Transfer Out'}
                             </button>
@@ -182,11 +188,17 @@ export default function TransferPanel({
                   key={player.id}
                   className="flex items-center justify-between rounded-md border border-border bg-card px-4 py-3"
                 >
-                  <div>
-                    <p className="font-medium text-sm">{player.web_name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {player.team_short_name} · {player.total_points} pts
-                    </p>
+                  <div className="flex items-center gap-2">
+                    <ShirtIcon
+                      color={getTeamColour(player.team_short_name)}
+                      className="w-7 h-7 shrink-0"
+                    />
+                    <div>
+                      <p className="font-medium text-sm">{player.web_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {player.team_short_name} · {player.total_points} pts
+                      </p>
+                    </div>
                   </div>
                   <button
                     onClick={() => handleSelectIncoming(player)}
