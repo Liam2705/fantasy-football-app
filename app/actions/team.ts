@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache"
 import prisma from "@/lib/db"
 import { getOrCreateUser } from "@/lib/user"
+import { autoAssignCaptain } from "./draft"
+import { isValidLineup } from "@/lib/lineup"
 
 export async function setCaptain(pickId: string, leagueId: string) {
   try {
@@ -190,45 +192,11 @@ export async function swapPlayers(pickId1: string, pickId2: string, leagueId: st
 
     // Count positions in starting 11 after swap
     const starters = simulatedPicks.filter(p => p.lineupSlot <= 11)
-    const positionCounts = {
-      GK: starters.filter(p => p.player.position === 'GK').length,
-      DEF: starters.filter(p => p.player.position === 'DEF').length,
-      MID: starters.filter(p => p.player.position === 'MID').length,
-      FWD: starters.filter(p => p.player.position === 'FWD').length,
+    
+    if (!isValidLineup(starters)) {
+      return { success: false, error: "Invalid formation — check position constraints" }
     }
 
-
-    // Must have exactly 1 GK
-    if (positionCounts.GK !== 1) {
-      return {
-        success: false,
-        error: "Must have exactly 1 goalkeeper in starting lineup"
-      }
-    }
-
-    // Check if formation is valid
-    const VALID_FORMATIONS = [
-      { def: 3, mid: 4, fwd: 3 },
-      { def: 3, mid: 5, fwd: 2 },
-      { def: 4, mid: 3, fwd: 3 },
-      { def: 4, mid: 4, fwd: 2 },
-      { def: 4, mid: 5, fwd: 1 },
-      { def: 5, mid: 3, fwd: 2 },
-      { def: 5, mid: 4, fwd: 1 },
-    ]
-
-    const isValidFormation = VALID_FORMATIONS.some(f =>
-      f.def === positionCounts.DEF &&
-      f.mid === positionCounts.MID &&
-      f.fwd === positionCounts.FWD
-    )
-
-    if (!isValidFormation) {
-      return {
-        success: false,
-        error: `Invalid formation: ${positionCounts.DEF}-${positionCounts.MID}-${positionCounts.FWD} is not allowed`
-      }
-    }
 
     // Perform the swap
     await prisma.$transaction([
@@ -241,6 +209,14 @@ export async function swapPlayers(pickId1: string, pickId2: string, leagueId: st
         data: { lineupSlot: pick1.lineupSlot }
       })
     ])
+
+    const captainOrVcWasSwappedOut =
+      (pick1.isCaptain || pick1.isViceCaptain) && pick1.lineupSlot <= 11 && pick2.lineupSlot > 11 ||
+      (pick2.isCaptain || pick2.isViceCaptain) && pick2.lineupSlot <= 11 && pick1.lineupSlot > 11
+
+    if (captainOrVcWasSwappedOut) {
+      await autoAssignCaptain(user.id, leagueId)
+    }
 
     revalidatePath(`/my-team`)
     return { success: true }

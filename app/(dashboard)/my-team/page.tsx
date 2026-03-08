@@ -15,36 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { calculateGameweekPoints } from "@/app/actions/gameweek-actions";
-
-// Position Contraints - min and max number allowed in play per position
-const POSITION_CONSTRAINTS = {
-  GK: { min: 1, max: 1 },
-  DEF: { min: 3, max: 5 },
-  MID: { min: 3, max: 5 },
-  FWD: { min: 1, max: 3 }
-}
-
-function isValidLineup(starters: any[]) {
-  const counts = {
-    GK: starters.filter(p => p.player.position === 'GK').length,
-    DEF: starters.filter(p => p.player.position === 'DEF').length,
-    MID: starters.filter(p => p.player.position === 'MID').length,
-    FWD: starters.filter(p => p.player.position === 'FWD').length,
-  }
-
-  // Must have exactly 11 players
-  if (starters.length !== 11) return false
-
-  // Check each position against constraints
-  for (const [position, constraint] of Object.entries(POSITION_CONSTRAINTS)) {
-    const count = counts[position as keyof typeof counts]
-    if (count < constraint.min || count > constraint.max) {
-      return false
-    }
-  }
-
-  return true
-}
+import { isValidLineup } from '@/lib/lineup'
 
 async function assignFormation(picks: any[], userId: string, leagueId: string) {
   // Count available players by position

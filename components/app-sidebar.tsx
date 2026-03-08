@@ -9,7 +9,8 @@ import {
   Trophy,
   Users,
   LayoutDashboard,
-  List
+  List,
+  ArrowLeftRight
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -36,16 +37,23 @@ function buildNavData(leagueId: string | null) {
         icon: LayoutDashboard,
         isActive: true,
       },
+      ...(leagueId ? [
       {
         title: "My Team",
         url: "/my-team",
         icon: Users,
       },
       {
+        title: "Transfers",
+        url: "/transfers",
+        icon: ArrowLeftRight,
+      },
+      {
         title: "Standings",
-        url: leagueId ? `/leagues/${leagueId}/standings` : '/leagues',
+        url: `/leagues/${leagueId}/standings`,
         icon: List,
       },
+    ] : []),
       {
         title: "Leagues",
         url: "/leagues",
