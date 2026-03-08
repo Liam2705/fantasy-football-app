@@ -319,6 +319,7 @@ export default async function MyTeamPage() {
             userId={user.id}
             leagueId={userLeague.id}
             starters={starters}
+            isLocked={userLeague.isGameweekLocked}
           />
         </div>
       </div>

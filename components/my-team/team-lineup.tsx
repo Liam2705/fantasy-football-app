@@ -162,12 +162,14 @@ export function CaptainSelection({
   userId,
   leagueId,
   starters,
+  isLocked
 }: {
   captain: (DraftPick & { player: Player }) | undefined;
   viceCaptain: (DraftPick & { player: Player }) | undefined;
   userId: string;
   leagueId: string;
   starters: (DraftPick & { player: Player })[];
+  isLocked: boolean
 }) {
   return (
     <Card>
@@ -189,13 +191,16 @@ export function CaptainSelection({
                 <div className="text-sm text-muted-foreground">No captain selected</div>
               )}
             </div>
-            <CaptainDialog
+            {!isLocked && (
+              <CaptainDialog
               starters={starters}
               currentCaptain={captain}
               currentViceCaptain={viceCaptain}
               type="captain"
               leagueId={leagueId}
             />
+            )}
+            
           </div>
         </div>
 
@@ -214,14 +219,15 @@ export function CaptainSelection({
                 <div className="text-sm text-muted-foreground">No vice-captain selected</div>
               )}
             </div>
-            {/* ✅ Always show the button */}
-            <CaptainDialog
+            {!isLocked && (
+              <CaptainDialog
               starters={starters}
               currentCaptain={captain}
               currentViceCaptain={viceCaptain}
-              type="vice-captain"
+              type="captain"
               leagueId={leagueId}
             />
+            )}
           </div>
         </div>
       </CardContent>

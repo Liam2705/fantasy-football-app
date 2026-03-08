@@ -50,7 +50,7 @@ export async function addPlayerToSquad(formData: FormData) {
 
         if (!player) {
             return { success: false, error: "Player not found" }
-        }      
+        }
 
         // Check position limits
         const positionPicks: DraftPickWithPlayer[] = await prisma.draftPick.findMany({
@@ -92,15 +92,21 @@ export async function addPlayerToSquad(formData: FormData) {
 
         // Create draft pick
         try {
-            await prisma.draftPick.create({
-                data: {
-                    userId: user.id,
-                    playerId,
-                    leagueId,
-                    pickOrder: nextPickOrder,
-                    lineupSlot: nextPickOrder,
-                }
-            })
+            await prisma.$transaction([
+                prisma.draftPick.create({
+                    data: {
+                        userId: user.id,
+                        playerId,
+                        leagueId,
+                        pickOrder: nextPickOrder,
+                        lineupSlot: nextPickOrder,
+                    }
+                }),
+                prisma.player.update({
+                    where: { id: playerId },
+                    data: { isDrafted: true },
+                }),
+            ])
         } catch (error: any) {
             // The Prisma error code for unique constraint violations
             if (error.code === 'P2002') {
@@ -128,9 +134,15 @@ export async function removePlayerFromSquad(formData: FormData) {
         const leagueId = formData.get("leagueId") as string
 
         // Delete the pick
-        await prisma.draftPick.delete({
-            where: { id: pickId, userId: user.id, }
+        const pick = await prisma.draftPick.findUnique({
+            where: { id: pickId }
         })
+        if (!pick) return { success: false, error: "Pick not found" }
+
+        await prisma.$transaction([
+            prisma.draftPick.delete({ where: { id: pickId, userId: user.id } }),
+            prisma.player.update({ where: { id: pick.playerId }, data: { isDrafted: false } }),
+        ])
 
         // Reorder remaining picks to fill gaps
         const remainingPicks = await prisma.draftPick.findMany({
@@ -250,40 +262,40 @@ export async function confirmDraft(leagueId: string) {
 }
 
 export async function autoAssignCaptain(userId: string, leagueId: string) {
-  // Get all starters ordered by total points descending
-  const starters = await prisma.draftPick.findMany({
-    where: {
-      userId,
-      leagueId,
-      lineupSlot: { lte: 11 },
-    },
-    include: {
-      player: { select: { total_points: true } },
-    },
-    orderBy: {
-      player: { total_points: 'desc' },
-    },
-  })
+    // Get all starters ordered by total points descending
+    const starters = await prisma.draftPick.findMany({
+        where: {
+            userId,
+            leagueId,
+            lineupSlot: { lte: 11 },
+        },
+        include: {
+            player: { select: { total_points: true } },
+        },
+        orderBy: {
+            player: { total_points: 'desc' },
+        },
+    })
 
-  if (starters.length < 2) return
+    if (starters.length < 2) return
 
-  const [captain, viceCaptain] = starters
+    const [captain, viceCaptain] = starters
 
-  await prisma.$transaction([
-    // Clear any existing captain/vc flags first
-    prisma.draftPick.updateMany({
-      where: { userId, leagueId },
-      data: { isCaptain: false, isViceCaptain: false },
-    }),
-    // Set captain
-    prisma.draftPick.update({
-      where: { id: captain.id },
-      data: { isCaptain: true },
-    }),
-    // Set vice captain
-    prisma.draftPick.update({
-      where: { id: viceCaptain.id },
-      data: { isViceCaptain: true },
-    }),
-  ])
+    await prisma.$transaction([
+        // Clear any existing captain/vc flags first
+        prisma.draftPick.updateMany({
+            where: { userId, leagueId },
+            data: { isCaptain: false, isViceCaptain: false },
+        }),
+        // Set captain
+        prisma.draftPick.update({
+            where: { id: captain.id },
+            data: { isCaptain: true },
+        }),
+        // Set vice captain
+        prisma.draftPick.update({
+            where: { id: viceCaptain.id },
+            data: { isViceCaptain: true },
+        }),
+    ])
 }
