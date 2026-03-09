@@ -271,6 +271,7 @@ export default async function MyTeamPage() {
             bench={bench}
             leagueId={userLeague.id}
             playerPoints={playerPointsMap}
+            isLocked={userLeague.isGameweekLocked}
           />
         </div>
 

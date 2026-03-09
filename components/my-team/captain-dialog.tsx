@@ -22,6 +22,8 @@ type CaptainDialogProps = {
   currentViceCaptain: (DraftPick & { player: Player }) | undefined
   type: "captain" | "vice-captain"
   leagueId: string
+  trigger?: React.ReactNode
+  preselectedPlayer?: DraftPick & { player: Player }
 }
 
 export function CaptainDialog({
@@ -29,7 +31,9 @@ export function CaptainDialog({
   currentCaptain,
   currentViceCaptain,
   type,
-  leagueId
+  leagueId,
+  trigger,
+  preselectedPlayer
 }: CaptainDialogProps) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -38,14 +42,24 @@ export function CaptainDialog({
   const currentSelection = isCaptainDialog ? currentCaptain : currentViceCaptain
 
   const handleSelect = (pickId: string) => {
+    // Prevent the same player being both captain and VC
+    if (isCaptainDialog && currentViceCaptain?.id === pickId) {
+      toast.error("This player is already your vice-captain")
+      return
+    }
+    if (!isCaptainDialog && currentCaptain?.id === pickId) {
+      toast.error("This player is already your captain")
+      return
+    }
+
     startTransition(async () => {
       const action = isCaptainDialog ? setCaptain : setViceCaptain
       const result = await action(pickId, leagueId)
 
       if (result.success) {
         toast.success(
-          isCaptainDialog 
-            ? "Captain updated!" 
+          isCaptainDialog
+            ? "Captain updated!"
             : "Vice-captain updated!"
         )
         setOpen(false)
@@ -55,8 +69,19 @@ export function CaptainDialog({
     })
   }
 
+  if (preselectedPlayer) {
+    return (
+      <div
+        onClick={() => handleSelect(preselectedPlayer.id)}
+        className="contents"
+      >
+        {trigger}
+      </div>
+    )
+  }
+
   const getPositionColor = (pos: string) => {
-    switch(pos) {
+    switch (pos) {
       case 'GK': return 'bg-blue-500'
       case 'DEF': return 'bg-green-500'
       case 'MID': return 'bg-yellow-500'
@@ -68,9 +93,11 @@ export function CaptainDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="ghost" className="text-xs px-2 h-7">
-          Change
-        </Button>
+        {trigger ?? (
+          <Button size="sm" variant="ghost" className="text-xs px-2 h-7">
+            Change
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
         <DialogHeader>
@@ -88,7 +115,7 @@ export function CaptainDialog({
             )}
           </DialogTitle>
           <DialogDescription>
-            {isCaptainDialog 
+            {isCaptainDialog
               ? "Your captain will earn double points each gameweek"
               : "Your vice-captain will replace the captain if they don't play"
             }
@@ -98,8 +125,8 @@ export function CaptainDialog({
         <div className="space-y-2 mt-4">
           {starters.map((pick) => {
             const isSelected = currentSelection?.id === pick.id
-            const isOtherRole = isCaptainDialog 
-              ? currentViceCaptain?.id === pick.id 
+            const isOtherRole = isCaptainDialog
+              ? currentViceCaptain?.id === pick.id
               : currentCaptain?.id === pick.id
 
             return (
@@ -110,8 +137,8 @@ export function CaptainDialog({
                 className={`
                   w-full flex items-center gap-3 p-3 border rounded-lg 
                   transition-all text-left
-                  ${isSelected 
-                    ? 'border-primary bg-primary/5' 
+                  ${isSelected
+                    ? 'border-primary bg-primary/5'
                     : 'hover:bg-muted/50'
                   }
                   ${isOtherRole ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
@@ -125,7 +152,7 @@ export function CaptainDialog({
                   <div className="h-4 w-4 rounded-full border-2 flex-shrink-0" />
                 )}
 
-                <Badge 
+                <Badge
                   className={`${getPositionColor(pick.player.position)} text-white flex-shrink-0`}
                 >
                   {pick.player.position}

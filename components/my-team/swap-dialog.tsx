@@ -21,6 +21,7 @@ type SwapDialogProps = {
   leagueId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  trigger?: React.ReactNode
 };
 
 export function SwapDialog({
@@ -29,6 +30,7 @@ export function SwapDialog({
   leagueId,
   open,
   onOpenChange,
+  trigger,
 }: SwapDialogProps) {
   const [isPending, startTransition] = useTransition();
 
@@ -74,7 +76,7 @@ export function SwapDialog({
             Swap {benchPlayer.player.lastName}
           </DialogTitle>
           <DialogDescription>
-            Select a starter to swap with • Formation will auto-adjust
+            Select a player to swap with • Formation will auto-adjust
           </DialogDescription>
         </DialogHeader>
 

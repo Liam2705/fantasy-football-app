@@ -4,12 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DraftPick, Player } from "@/app/generated/prisma/client";
-import { ArrowDownUp, Shield, Star } from "lucide-react";
+import { ArrowDownUp, BarChart2, Shield, Star } from "lucide-react";
 import { CaptainDialog } from "./captain-dialog";
 import { useState } from "react";
 import { SwapDialog } from "./swap-dialog";
 import { getTeamColour } from "@/lib/team-colours";
 import { ShirtIcon } from "../shirt-icon";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 
 type TeamLineupProps = {
   starters: (DraftPick & { player: Player })[];
@@ -18,6 +19,7 @@ type TeamLineupProps = {
   bench: (DraftPick & { player: Player })[];
   leagueId: string;
   playerPoints?: Map<string, number>
+  isLocked: boolean
 };
 
 export function TeamLineup({
@@ -26,11 +28,13 @@ export function TeamLineup({
   viceCaptain,
   bench,
   leagueId,
-  playerPoints
+  playerPoints,
+  isLocked
 }: TeamLineupProps) {
 
 
-
+  const [selectedPick, setSelectedPick] = useState<(DraftPick & { player: Player }) | null>(null)
+  
 
   // Group starters by position
   const lineup = {
@@ -55,6 +59,118 @@ export function TeamLineup({
     }
   };
 
+  function PlayerActionDialog({
+    pick,
+    captain,
+    viceCaptain,
+    starters,
+    bench,
+    leagueId,
+    isLocked,
+    open,
+    onOpenChange,
+  }: {
+    pick: DraftPick & { player: Player }
+    captain: (DraftPick & { player: Player }) | undefined
+    viceCaptain: (DraftPick & { player: Player }) | undefined
+    starters: (DraftPick & { player: Player })[]
+    bench: (DraftPick & { player: Player })[]
+    leagueId: string
+    isLocked: boolean
+    open: boolean
+    onOpenChange: (open: boolean) => void
+  }) {
+    const [swapOpen, setSwapOpen] = useState(false)
+    const isCaptain = pick.id === captain?.id
+    const isViceCaptain = pick.id === viceCaptain?.id
+
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShirtIcon
+                color={getTeamColour(pick.player.team_short_name)}
+                className="w-6 h-6"
+              />
+              {pick.player.web_name}
+            </DialogTitle>
+            <DialogDescription>
+              {pick.player.position} · {pick.player.team_short_name}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-2 pt-2">
+            {/* Sub */}
+            {!isLocked && (
+              <>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-2"
+                  onClick={() => setSwapOpen(true)}
+                >
+                  <ArrowDownUp className="h-4 w-4" />
+                  Substitute Player
+                </Button>
+                <SwapDialog
+                  benchPlayer={pick}
+                  starters={bench}
+                  leagueId={leagueId}
+                  open={swapOpen}
+                  onOpenChange={setSwapOpen}
+                />
+              </>
+            )}
+
+            {/* Set Captain */}
+            {!isCaptain && !isLocked && (
+              <CaptainDialog
+                starters={starters}
+                currentCaptain={captain}
+                currentViceCaptain={viceCaptain}
+                type="captain"
+                leagueId={leagueId}
+                preselectedPlayer={pick}
+                trigger={
+                  <Button variant="outline" className="w-full justify-start gap-2">
+                    <Star className="h-4 w-4 text-yellow-500" />
+                    Set as Captain
+                  </Button>
+                }
+              />
+            )}
+
+            {/* Set Vice Captain */}
+            {!isViceCaptain && !isLocked && (
+              <CaptainDialog
+                starters={starters}
+                currentCaptain={captain}
+                currentViceCaptain={viceCaptain}
+                type="vice-captain"
+                leagueId={leagueId}
+                preselectedPlayer={pick}
+                trigger={
+                  <Button variant="outline" className="w-full justify-start gap-2">
+                    <Shield className="h-4 w-4 text-gray-500" />
+                    Set as Vice-Captain
+                  </Button>
+                }
+              />
+            )}
+
+            {/* View Stats — temp placeholder */}
+            <Button variant="outline" className="w-full justify-start gap-2" disabled>
+              <BarChart2 className="h-4 w-4" />
+              View Stats
+              <span className="ml-auto text-xs text-muted-foreground">Coming soon</span>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
+
   const PlayerCard = ({ pick }: { pick: DraftPick & { player: Player } }) => {
     const isCaptain = pick.id === captain?.id;
     const isViceCaptain = pick.id === viceCaptain?.id;
@@ -62,9 +178,11 @@ export function TeamLineup({
 
 
     return (
-      <div className="flex flex-col items-center gap-1">
+      <div
+        className="flex flex-col items-center gap-1 cursor-pointer"
+        onClick={() => setSelectedPick(pick)}
+      >
         <div className="relative">
-          {/* Captain / VC badge */}
           {isCaptain && (
             <div className="absolute -top-1 -right-1 z-10 bg-yellow-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shadow-lg border-2 border-white">
               C
@@ -79,16 +197,16 @@ export function TeamLineup({
           {/* Shirt */}
           <ShirtIcon
             color={getTeamColour(pick.player.team_short_name)}
-            className="w-10 h-10 sm:w-12 sm:h-12 drop-shadow-md"
+            className="w-16 h-16 sm:w-20 sm:h-20 drop-shadow-md hover:scale-110 transition-transform"
           />
         </div>
-
+        
         {/* Player info pill */}
-        <div className="bg-black/60 rounded px-1.5 py-0.5 text-center min-w-15 max-w-18">
-          <div className="text-white text-[10px] font-semibold truncate leading-tight">
+        <div className="bg-black/60 rounded px-2 py-0.5 text-center min-w-20 max-w-24">
+          <div className="text-white text-xs font-semibold truncate leading-tight">
             {pick.player.web_name}
           </div>
-          <div className={`text-[10px] font-bold leading-tight ${isCaptain ? 'text-yellow-300' : 'text-white'}`}>
+          <div className={`text-xs font-bold leading-tight ${isCaptain ? 'text-yellow-300' : 'text-white'}`}>
             {displayPoints} pts
           </div>
         </div>
@@ -108,7 +226,8 @@ export function TeamLineup({
       </CardHeader>
       <CardContent className="p-3 sm:p-6">
         {/* Football Pitch Layout */}
-        <div className="bg-gradient-to-b from-green-600 to-green-700 rounded-lg p-3 sm:p-6 min-h-[600px] sm:min-h-[700px] flex flex-col justify-between">
+        <div className="relative bg-linear-to-b from-green-600 to-green-700 rounded-lg p-3 sm:p-6 min-h-150 sm:min-h-175 flex flex-col justify-between overflow-hidden">
+
           {/* Goalkeeper */}
           {lineup.GK.length > 0 && (
             <div className="flex justify-center">
@@ -154,7 +273,22 @@ export function TeamLineup({
           )}
         </div>
       </CardContent>
-    </Card>
+      {
+        selectedPick && (
+          <PlayerActionDialog
+            pick={selectedPick}
+            captain={captain}
+            viceCaptain={viceCaptain}
+            starters={starters}
+            bench={bench}
+            leagueId={leagueId}
+            isLocked={isLocked}
+            open={!!selectedPick}
+            onOpenChange={(open) => !open && setSelectedPick(null)}
+          />
+        )
+      }
+    </Card >
   );
 }
 
