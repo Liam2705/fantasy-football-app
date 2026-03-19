@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowDownUp, Loader2 } from "lucide-react";
 import { swapPlayers } from "@/app/actions/team";
 import { toast } from "sonner";
+import { sortPlayersByPosition } from "@/lib/sort-players";
 
 type SwapDialogProps = {
   benchPlayer: DraftPick & { player: Player };
@@ -35,7 +36,7 @@ export function SwapDialog({
   const [isPending, startTransition] = useTransition();
 
   // Filter valid starters to swap with
-  const eligibleStarters = starters;
+  const eligibleStarters = sortPlayersByPosition(starters);
 
   const handleSwap = (starterPickId: string) => {
     startTransition(async () => {

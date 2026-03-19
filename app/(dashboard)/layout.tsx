@@ -33,6 +33,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
               clerkUser.emailAddresses[0]?.emailAddress ??
               "User"),
         email: dbUser.email,
+        teamName: dbUser.teamName,
         avatar: clerkUser.imageUrl,
       }
       : {

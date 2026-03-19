@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { redirect } from "next/dist/server/api-utils";
 import Link from "next/link";
+import { sortPlayersByPosition } from "@/lib/sort-players";
 
 const getPositionStyle = (position: string) => {
   switch (position) {
@@ -23,6 +24,7 @@ const getPositionStyle = (position: string) => {
 interface TeamLineupCardProps {
   captain: string;
   viceCaptain: string;
+  gameweek: number | null
   starters: Array<{
     name: string;
     team: string;
@@ -40,6 +42,7 @@ interface TeamLineupCardProps {
 export function TeamLineupCard({
   captain,
   viceCaptain,
+  gameweek,
   starters,
   bench,
 }: TeamLineupCardProps) {
@@ -71,7 +74,7 @@ export function TeamLineupCard({
         <div className="flex items-center justify-between">
           <div>
             <CardTitle>Last Team Selection</CardTitle>
-            <CardDescription>Current gameweek lineup (GW 22)</CardDescription>
+            <CardDescription>Current gameweek lineup (GW {gameweek})</CardDescription>
           </div>
           <Badge variant="secondary">{formation ?? 'Set Lineup'}</Badge>
         </div>

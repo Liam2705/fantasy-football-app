@@ -11,6 +11,7 @@ import { SwapDialog } from "./swap-dialog";
 import { getTeamColour } from "@/lib/team-colours";
 import { ShirtIcon } from "../shirt-icon";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
+import { sortPlayersByPosition } from "@/lib/sort-players";
 
 type TeamLineupProps = {
   starters: (DraftPick & { player: Player })[];
@@ -390,16 +391,7 @@ export function BenchPlayers({
 
   const selectedPlayer = bench.find((p) => p.id === swapPlayerId);
 
-  const POSITION_ORDER: Record<string, number> = {
-    GK: 0,
-    DEF: 1,
-    MID: 2,
-    FWD: 3,
-  }
-
-  const sortedBench = [...bench].sort(
-    (a, b) => POSITION_ORDER[a.player.position] - POSITION_ORDER[b.player.position]
-  )
+  const sortedBench = sortPlayersByPosition(bench)
 
   return (
     <>

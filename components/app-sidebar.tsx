@@ -106,12 +106,14 @@ function buildNavData(leagueId: string | null) {
 export type SidebarUser = {
   name: string
   email: string
+  teamName?: string | null
   avatar?: string
 }
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user: SidebarUser
   leagueId: string | null
+  
 }
 
 
@@ -130,7 +132,7 @@ export function AppSidebar({ user, leagueId, ...props }: AppSidebarProps) {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-xs">Team Name</span>
+                  <span className="truncate text-xs">{user.teamName ?? "No team yet"}</span>
                 </div>
               </a>
             </SidebarMenuButton>

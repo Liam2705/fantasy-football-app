@@ -4,8 +4,10 @@ import { TeamLineupCard } from "@/components/dashboard/team-lineup-card";
 import { TransfersCard } from "@/components/dashboard/transfers-card";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import prisma from "@/lib/db";
+import { sortPlayersByPosition } from "@/lib/sort-players";
 import { getOrCreateUser } from "@/lib/user";
 import { redirect } from "next/navigation";
+export const dynamic = 'force-dynamic'
 
 export default async function Page() {
 
@@ -17,13 +19,14 @@ export default async function Page() {
     include: { league: true },
   })
 
+  const positionOrder: Record<string, number> = { GK: 0, DEF: 1, MID: 2, FWD: 3 }
+
   // Fetch squad if user has a league and draft is complete
   const draftPicks = membership && user.draftComplete
-    ? await prisma.draftPick.findMany({
+    ? sortPlayersByPosition(await prisma.draftPick.findMany({
       where: { userId: user.id, leagueId: membership.league.id },
       include: { player: true },
-      orderBy: { lineupSlot: 'asc' },
-    })
+    }))
     : []
 
   const currentGameweek = await prisma.gameweek.findFirst({
@@ -62,16 +65,36 @@ export default async function Page() {
   const captainPick = draftPicks.find(p => p.isCaptain)
   const viceCaptainPick = draftPicks.find(p => p.isViceCaptain)
 
+  const userGameweek = membership ? await prisma.userGameweek.findUnique({
+    where: {
+      userId_leagueId_gameweek: {
+        userId: user.id,
+        leagueId: membership.league.id,
+        gameweek: currentGameweek?.id ?? 1,
+      }
+    }
+  }) : null
+
+  const prevGameweek = membership && currentGameweek ? await prisma.userGameweek.findUnique({
+    where: {
+      userId_leagueId_gameweek: {
+        userId: user.id,
+        leagueId: membership.league.id,
+        gameweek: (currentGameweek.id ?? 2) - 1,
+      }
+    }
+  }) : null
+
   return (
     <SidebarProvider>
       <SidebarInset>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           <div className="grid auto-rows-min gap-4 md:grid-cols-3">
             <GameweekPointsCard
-              gameweek={22}
-              points={34}
-              change={12}
-              progress={76}
+              gameweek={currentGameweek?.id ?? null}
+              points={userGameweek?.points ?? 0}
+              change={prevGameweek ? (userGameweek?.points ?? 0) - prevGameweek.points : 0}
+              progress={Math.min(((userGameweek?.points ?? 0) / 100) * 100, 100)} // points as a percentage of 100
             />
             <OverallRankCard rank={0} change={0} />
             <TransfersCard transfers={0} freeTransfers={0} />
@@ -79,6 +102,7 @@ export default async function Page() {
           <TeamLineupCard
             captain={captainPick?.player.web_name ?? ''}
             viceCaptain={viceCaptainPick?.player.web_name ?? ''}
+            gameweek={currentGameweek?.id ?? null}
             starters={starters}
             bench={bench} />
         </div>

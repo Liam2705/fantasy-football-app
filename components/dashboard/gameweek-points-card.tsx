@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 
 interface GameweekPointsCardProps {
-  gameweek: number
+  gameweek: number | null
   points: number
   change: number
   progress: number
