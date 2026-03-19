@@ -26,6 +26,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { ThemeToggle } from "./theme-toggle"
 
 function buildNavData(leagueId: string | null) {
 
@@ -121,7 +122,7 @@ export function AppSidebar({ user, leagueId, ...props }: AppSidebarProps) {
   const data = buildNavData(leagueId)
   const isMobile = useSidebar();
   return (
-    <Sidebar variant="floating" {...props}>
+    <Sidebar variant="sidebar" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>

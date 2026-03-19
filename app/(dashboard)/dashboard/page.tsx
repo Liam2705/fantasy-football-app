@@ -96,7 +96,12 @@ export default async function Page() {
               change={prevGameweek ? (userGameweek?.points ?? 0) - prevGameweek.points : 0}
               progress={Math.min(((userGameweek?.points ?? 0) / 100) * 100, 100)} // points as a percentage of 100
             />
-            <OverallRankCard rank={0} change={0} />
+            <OverallRankCard
+              rank={userGameweek?.rank ?? 0}
+              change={prevGameweek?.rank && userGameweek?.rank
+                ? prevGameweek.rank - userGameweek.rank  // positive = moved up
+                : 0}
+            />
             <TransfersCard transfers={0} freeTransfers={0} />
           </div>
           <TeamLineupCard

@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge"
 import { Star, Shield, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { setCaptain, setViceCaptain } from "@/app/actions/team"
+import { sortPlayersByPosition } from "@/lib/sort-players"
 
 type CaptainDialogProps = {
   starters: (DraftPick & { player: Player })[]
@@ -82,11 +83,11 @@ export function CaptainDialog({
 
   const getPositionColor = (pos: string) => {
     switch (pos) {
-      case 'GK': return 'bg-blue-500'
-      case 'DEF': return 'bg-green-500'
-      case 'MID': return 'bg-yellow-500'
-      case 'FWD': return 'bg-red-500'
-      default: return 'bg-gray-500'
+      case 'GK': return 'bg-amber-500 text-amber-400 ring-1 ring-amber-500/40'
+      case 'DEF': return 'bg-primary text-primary ring-1 ring-primary/40'
+      case 'MID': return 'bg-violet-500 text-violet-400 ring-1 ring-violet-500/40'
+      case 'FWD': return 'bg-rose-500 text-rose-400 ring-1 ring-rose-500/40'
+      default: return 'bg-muted text-muted-foreground'
     }
   }
 

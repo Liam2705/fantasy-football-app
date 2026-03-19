@@ -2,9 +2,10 @@ import { type Metadata } from 'next'
 import {
   ClerkProvider,
 } from '@clerk/nextjs'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Geist, Geist_Mono, Inter, Outfit } from 'next/font/google'
 import './globals.css'
 import { shadcn } from '@clerk/themes'
+import { ThemeProvider } from '@/components/theme-provider'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -14,6 +15,11 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+})
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-sans",
 })
 
 export const metadata: Metadata = {
@@ -28,13 +34,15 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider appearance={{
-    theme: shadcn,
-  }}>
-      <html lang="en">
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      theme: shadcn,
+    }}>
+      <html lang="en" suppressHydrationWarning className={outfit.variable}>
+        <body >
           <header>
           </header>
-          {children}
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            {children}
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

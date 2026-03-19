@@ -10,6 +10,8 @@ import {
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { Toaster } from "sonner"
+import { ThemeToggle } from "@/components/theme-toggle";
+import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const clerkUser = await currentUser();
@@ -61,13 +63,8 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
             orientation="vertical"
             className="mr-2 data-[orientation=vertical]:h-4"
           />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbPage>Dashboard</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
+          <BreadcrumbNav />
+          <ThemeToggle className="ml-auto"/>
         </header>
         <main className="p-6">{children}</main>
       </SidebarInset>

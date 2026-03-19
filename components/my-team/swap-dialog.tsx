@@ -53,20 +53,15 @@ export function SwapDialog({
     });
   };
 
-  const getPositionColor = (pos: string) => {
-    switch (pos) {
-      case "GK":
-        return "bg-blue-500";
-      case "DEF":
-        return "bg-green-500";
-      case "MID":
-        return "bg-yellow-500";
-      case "FWD":
-        return "bg-red-500";
-      default:
-        return "bg-gray-500";
-    }
-  };
+  const getPositionStyle = (position: string) => {
+  switch (position) {
+    case 'GK': return 'bg-amber-500 text-amber-400 ring-1 ring-amber-500/40'
+    case 'DEF': return 'bg-primary text-primary ring-1 ring-primary/40'
+    case 'MID': return 'bg-violet-500 text-violet-400 ring-1 ring-violet-500/40'
+    case 'FWD': return 'bg-rose-500 text-rose-400 ring-1 ring-rose-500/40'
+    default: return 'bg-muted text-muted-foreground'
+  }
+}
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -96,7 +91,7 @@ export function SwapDialog({
                   className="w-full flex items-center gap-2 sm:gap-3 p-2 sm:p-3 border rounded-lg hover:bg-muted/50 transition-all text-left"
                 >
                   <Badge
-                    className={`${getPositionColor(starter.player.position)} text-white flex-shrink-0 text-xs`}
+                    className={`${getPositionStyle(starter.player.position)} text-white flex-shrink-0 text-xs`}
                   >
                     {starter.player.position}
                   </Badge>

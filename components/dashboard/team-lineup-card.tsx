@@ -13,11 +13,11 @@ import { sortPlayersByPosition } from "@/lib/sort-players";
 
 const getPositionStyle = (position: string) => {
   switch (position) {
-    case 'GK': return 'bg-blue-500'
-    case 'DEF': return 'bg-green-500'
-    case 'MID': return 'bg-yellow-500'
-    case 'FWD': return 'bg-red-500'
-    default: return 'bg-gray-500'
+    case 'GK': return 'bg-amber-500 text-amber-400 ring-1 ring-amber-500/40'
+    case 'DEF': return 'bg-primary text-primary ring-1 ring-primary/40'
+    case 'MID': return 'bg-violet-500 text-violet-400 ring-1 ring-violet-500/40'
+    case 'FWD': return 'bg-rose-500 text-rose-400 ring-1 ring-rose-500/40'
+    default: return 'bg-muted text-muted-foreground'
   }
 }
 
@@ -129,7 +129,7 @@ export function TeamLineupCard({
             <h4 className="font-medium mb-2 text-sm text-muted-foreground">
               Captain
             </h4>
-            <div className="flex items-center gap-3 p-4 bg-linear-to-r from-purple-500 to-purple-600 text-white rounded-xl">
+            <div className="flex items-center gap-3 p-4 bg-linear-to-r from-primary/90 to-primary/85 text-white rounded-xl">
               <div className={`w-12 h-12 ${getPositionStyle(starters.find(p => p.name === captain)?.position ?? '')} bg-purple-400 rounded-full flex items-center justify-center text-white font-bold text-s`}>
                 {starters.find(p => p.name === captain)?.position ?? '—'}
               </div>
@@ -143,7 +143,7 @@ export function TeamLineupCard({
             <h4 className="font-medium mb-2 text-sm text-muted-foreground">
               Vice-Captain
             </h4>
-            <div className="flex items-center gap-3 p-4 bg-linear-to-r from-indigo-500 to-indigo-600 text-white rounded-xl">
+            <div className="flex items-center gap-3 p-4 bg-linear-to-r from-violet-500/90 to-violet-500/85 text-white rounded-xl">
               <div className={`w-12 h-12 ${getPositionStyle(starters.find(p => p.name === viceCaptain)?.position ?? '')} bg-indigo-400 rounded-full flex items-center justify-center text-white font-bold text-s`}>
                 {starters.find(p => p.name === viceCaptain)?.position ?? '—'}
               </div>

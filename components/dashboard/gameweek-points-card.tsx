@@ -19,7 +19,13 @@ export function GameweekPointsCard({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">Gameweek Points</CardTitle>
-        <Badge variant="outline">GW {gameweek}</Badge>
+        <Badge
+          variant="outline"
+          className="text-white"
+          style={{ backgroundColor: 'oklch(51.758% 0.06089 156.8)' }}
+        >
+          GW {gameweek}
+        </Badge>
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{points}</div>
