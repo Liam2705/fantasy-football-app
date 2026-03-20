@@ -23,7 +23,7 @@ const outfit = Outfit({
 })
 
 export const metadata: Metadata = {
-  title: 'Fantasy Football Application',
+  title: 'Fantasy Football',
   description: 'A Premier League Fantasy Football Application',
 }
 

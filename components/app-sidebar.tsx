@@ -10,7 +10,8 @@ import {
   Users,
   LayoutDashboard,
   List,
-  ArrowLeftRight
+  ArrowLeftRight,
+  UserPen
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -74,27 +75,12 @@ function buildNavData(leagueId: string | null) {
           },
         ],
       },
-      {
-        title: "Settings",
-        url: "#",
-        icon: Settings2,
-        items: [
-          {
-            title: "Profile",
-            url: "#",
-          },
-          {
-            title: "Team Name",
-            url: "#",
-          },
-        ],
-      },
     ],
     navSecondary: [
       {
-        title: "Support",
-        url: "#",
-        icon: LifeBuoy,
+        title: "Profile",
+        url: "/profile",
+        icon: UserPen,
       },
       {
         title: "Settings",
@@ -128,9 +114,7 @@ export function AppSidebar({ user, leagueId, ...props }: AppSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <a href="/dashboard">
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <Command className="size-4" />
-                </div>
+                <img src="/logo.png" alt="Logo" className="size-9 object-contain" />
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>
                   <span className="truncate text-xs">{user.teamName ?? "No team yet"}</span>
