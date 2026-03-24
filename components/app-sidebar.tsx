@@ -11,7 +11,8 @@ import {
   LayoutDashboard,
   List,
   ArrowLeftRight,
-  UserPen
+  UserPen,
+  History
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -55,6 +56,7 @@ function buildNavData(leagueId: string | null) {
         url: `/leagues/${leagueId}/standings`,
         icon: List,
       },
+      
     ] : []),
       {
         title: "Leagues",
@@ -75,6 +77,8 @@ function buildNavData(leagueId: string | null) {
           },
         ],
       },
+      
+      
     ],
     navSecondary: [
       {
@@ -83,9 +87,9 @@ function buildNavData(leagueId: string | null) {
         icon: UserPen,
       },
       {
-        title: "Settings",
-        url: "#",
-        icon: Settings,
+        title: "History",
+        url: `/leagues/${leagueId}/history`,
+        icon: History,
       },
     ],
   }

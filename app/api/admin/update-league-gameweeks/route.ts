@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { getCurrentGameweek } from '@/lib/fpl-helpers'
 
+/*
+Updates all leagues to the current gameweek
+*/
 export async function GET() {
   try {
     console.log('Updating all leagues to current gameweek...\n')

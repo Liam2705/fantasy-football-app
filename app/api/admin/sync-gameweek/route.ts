@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { getCurrentGameweek } from '@/lib/fpl-helpers'
-
+/*
+Syncs the player stats for the current gameweek  
+*/
 export async function POST(request: Request) {
   try {
     // Get which gameweek to sync from request body

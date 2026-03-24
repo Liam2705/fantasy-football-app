@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { syncGameweeks } from '@/lib/fpl-sync'
-
+/*
+Syncs the times and info regarding gameweeks
+*/
 export async function POST() {
   try {
     const result = await syncGameweeks()

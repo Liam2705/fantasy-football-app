@@ -60,22 +60,6 @@ export function CreateLeagueForm({ userId }: CreateLeagueFormProps) {
           {leagueName.length}/50 characters
         </p>
       </div>
-
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id="private"
-          checked={isPrivate}
-          onCheckedChange={(checked) => setIsPrivate(checked as boolean)}
-          disabled={isPending}
-        />
-        <Label 
-          htmlFor="private" 
-          className="text-sm font-normal cursor-pointer"
-        >
-          Make this league private (recommended)
-        </Label>
-      </div>
-
       <Button 
         type="submit" 
         className="w-full" 
