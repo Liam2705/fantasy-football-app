@@ -65,8 +65,8 @@ export function TeamLineupCard({
   )
 
   const formation = starters.length === 11
-  ? `${starters.filter(p => p.position === 'DEF').length}-${starters.filter(p => p.position === 'MID').length}-${starters.filter(p => p.position === 'FWD').length}`
-  : null
+    ? `${starters.filter(p => p.position === 'DEF').length}-${starters.filter(p => p.position === 'MID').length}-${starters.filter(p => p.position === 'FWD').length}`
+    : null
 
   return (
     <Card className="w-full col-span-1 lg:col-span-2">
@@ -187,12 +187,16 @@ export function TeamLineupCard({
 
         {/* Action buttons */}
         <div className="flex flex-col sm:flex-row gap-2 pt-4 border-t">
-          <Button className="w-full sm:w-auto">
-            <Link href="/my-team">Edit Lineup</Link>
-          </Button>
-          <Button variant="outline" className="w-full sm:w-auto">
-            <Link href="/transfers">Make Transfers</Link>
-          </Button>
+          <Link href="/my-team">
+            <Button className="w-full sm:w-auto cursor-pointer">
+              Edit Lineup
+            </Button>
+          </Link>
+          <Link href="/transfers">
+            <Button variant="outline" className="w-full sm:w-auto cursor-pointer">
+              Make Transfers
+            </Button>
+          </Link>
         </div>
       </CardContent>
     </Card>

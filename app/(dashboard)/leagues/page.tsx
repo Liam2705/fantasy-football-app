@@ -59,14 +59,14 @@ export default async function LeaguesPage() {
       {/* Action Buttons */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <Link href="/leagues/create">
-          <Button className="w-full h-20 text-lg" size="lg">
+          <Button className="w-full h-20 text-lg cursor-pointer" size="lg">
             <Plus className="mr-2 h-5 w-5" />
             Create New League
           </Button>
         </Link>
         
         <Link href="/leagues/join">
-          <Button variant="outline" className="w-full h-20 text-lg" size="lg">
+          <Button variant="outline" className="w-full h-20 text-lg cursor-pointer" size="lg">
             <Users className="mr-2 h-5 w-5" />
             Join League
           </Button>

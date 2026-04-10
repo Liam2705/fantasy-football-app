@@ -2,7 +2,7 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
 const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
-  '/api/admin(.*)',  // temp measure for testing
+  '/api(.*)' // FOR POSTMAN API TESTING - will be removed in prod
 ])
 
 export default clerkMiddleware(async (auth, req) => {

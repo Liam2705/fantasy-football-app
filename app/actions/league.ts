@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache"
 import { customAlphabet } from "nanoid"
 import prisma from "@/lib/db"
 import { getOrCreateUser } from "@/lib/user"
-import { redirect } from "next/dist/server/api-utils";
 
 const generateCode = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', 6)
 

@@ -203,7 +203,7 @@ export default function TransferPanel({
                   <button
                     onClick={() => handleSelectIncoming(player)}
                     disabled={isPending}
-                    className="text-xs px-3 py-1.5 rounded-md font-medium bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
+                    className="text-xs px-3 py-1.5 rounded-md font-medium bg-green-700 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
                   >
                     Transfer In
                   </button>

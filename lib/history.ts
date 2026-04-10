@@ -24,7 +24,7 @@ export async function getGameweekHistory(
   })
 
   if (!membership || membership.leagueId !== leagueId) {
-    throw new Error('Not a member of this league.')
+     console.log('Not a member of this league');
   }
 
   const records = await prisma.userGameweek.findMany({
