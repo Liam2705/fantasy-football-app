@@ -7,7 +7,7 @@ A fully featured fantasy football prototype built with Next.js, Prisma, PostgreS
 > Some of the console commands provided are applicable for macOS, and Linux natively using the bash terminal. For windows users, consider using [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) or just convert the commands accordingly. 
 
 ## Contents
-
+- [Showcase](#showcase)
 - [Tech Stack](#tech-stack)
 - [Prerequisites](#prerequisites)
 - [Getting Started](#getting-started)
@@ -15,6 +15,12 @@ A fully featured fantasy football prototype built with Next.js, Prisma, PostgreS
 - [Setting Up PostgreSQL](#setting-up-postgresql)
 - [Setting Up Clerk](#setting-up-clerk)
 - [Admin API Endpoints](#admin-api-endpoints)
+
+***
+
+## Showcase
+Link to the application showcase: https://youtu.be/CR7RIP0wU6c  
+
 
 ***
 
